@@ -65,29 +65,29 @@
 
         /* ── CAR SELECT ── */
         #car-screen { padding: 130px 20px 10px; justify-content: flex-start; }
-        .car-screen-title { font-size: 26px; color: white; font-family: Montserrat, sans-serif; margin-bottom: 6px; }
-        .car-screen-code { font-size: 16px; color: var(--color-main); font-family: Montserrat, sans-serif; margin-bottom: 8px; }
-        .car-search-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 750px; margin-bottom: 8px; }
+        .car-screen-title { font-size: 32px; color: white; font-family: Montserrat, sans-serif; margin-bottom: 8px; }
+        .car-screen-code { font-size: 18px; color: var(--color-main); font-family: Montserrat, sans-serif; margin-bottom: 10px; }
+        .car-search-row { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 850px; margin-bottom: 10px; }
         .car-search-display {
-            flex: 1; padding: 10px 16px; border-radius: 10px; border: 2px solid #363636;
-            background: rgba(30,30,30,0.9); color: white; font-size: 18px; font-family: MontserratRegular, sans-serif;
-            min-height: 44px; display: flex; align-items: center; cursor: pointer;
+            flex: 1; padding: 14px 20px; border-radius: 12px; border: 2px solid #363636;
+            background: rgba(30,30,30,0.9); color: white; font-size: 20px; font-family: MontserratRegular, sans-serif;
+            min-height: 52px; display: flex; align-items: center; cursor: pointer;
         }
         .car-search-display.active { border-color: var(--color-main); }
         .car-search-display .placeholder { color: #555; }
-        .car-search-clear { padding: 10px 16px; background: #363636; color: #aaa; border-radius: 10px; font-size: 16px; font-family: Montserrat, sans-serif; cursor: pointer; border: none; }
-        .car-list { width: 100%; max-width: 750px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
-        .car-list::-webkit-scrollbar { width: 6px; } .car-list::-webkit-scrollbar-track { background: transparent; } .car-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-        .car-card { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 2px solid #363636; background: rgba(30,30,30,0.85); border-radius: 12px; cursor: pointer; transition: border-color 0.3s; }
+        .car-search-clear { padding: 14px 20px; background: #363636; color: #aaa; border-radius: 12px; font-size: 18px; font-family: Montserrat, sans-serif; cursor: pointer; border: none; }
+        .car-list { width: 100%; max-width: 850px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 10px; }
+        .car-list::-webkit-scrollbar { width: 8px; } .car-list::-webkit-scrollbar-track { background: transparent; } .car-list::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        .car-card { display: flex; align-items: center; gap: 16px; padding: 14px 18px; border: 2px solid #363636; background: rgba(30,30,30,0.85); border-radius: 14px; cursor: pointer; transition: border-color 0.3s; }
         .car-card:hover, .car-card:active { border-color: var(--color-main); }
-        .car-icon { width: 56px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .car-icon { width: 100px; height: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .car-info { flex: 1; }
-        .car-name { font-size: 16px; color: white; font-family: Montserrat, sans-serif; }
-        .car-vin { font-size: 11px; color: #777; font-family: MontserratRegular, sans-serif; margin-top: 2px; letter-spacing: 1px; }
-        .car-color-label { font-size: 13px; color: #aaa; font-family: MontserratRegular, sans-serif; white-space: nowrap; }
+        .car-name { font-size: 20px; color: white; font-family: Montserrat, sans-serif; }
+        .car-vin { font-size: 13px; color: #777; font-family: MontserratRegular, sans-serif; margin-top: 3px; letter-spacing: 1px; }
+        .car-color-label { font-size: 15px; color: #aaa; font-family: MontserratRegular, sans-serif; white-space: nowrap; }
 
         /* On-screen keyboard — letters left, numpad right */
-        .osk { display: none; width: 100%; max-width: 900px; background: rgba(20,20,20,0.95); border-radius: 14px; padding: 10px; margin-bottom: 6px; border: 1px solid #333; }
+        .osk { display: none; width: 100%; max-width: 950px; background: rgba(20,20,20,0.95); border-radius: 14px; padding: 10px; margin-bottom: 6px; border: 1px solid #333; }
         .osk.visible { display: flex; gap: 10px; }
         .osk-letters { flex: 1; }
         .osk-numpad { border-left: 2px solid #444; padding-left: 10px; display: flex; flex-wrap: wrap; width: 200px; gap: 5px; align-content: flex-start; }
@@ -284,7 +284,7 @@
             16: 'audi_q5.png', 17: 'lexus_rx350.png', 18: 'volkswagen_atlas.png',
             19: 'mazda_cx5.png', 20: 'dodge_charger.png'
         }
-        function carImg(id, w=56, h=40) {
+        function carImg(id, w=100, h=70) {
             const src = CAR_IMAGES[id] || 'toyota_camry.png'
             return `<img src="assets/image/cars/${src}" alt="" style="width:${w}px;height:${h}px;object-fit:contain;">`
         }
@@ -423,7 +423,7 @@
             selectedCar = CARS.find(c => c.id === id)
             if (!selectedCar) return
             // Show confirmation screen
-            document.getElementById('confirm-car-icon').innerHTML = carImg(selectedCar.id, 160, 100)
+            document.getElementById('confirm-car-icon').innerHTML = carImg(selectedCar.id, 200, 130)
             document.getElementById('confirm-car-name').textContent = `${selectedCar.year} ${selectedCar.brand} ${selectedCar.model}`
             document.getElementById('confirm-car-vin').textContent = selectedCar.vin
             document.getElementById('confirm-car-color').innerHTML = `<span class="confirm-color-dot" style="background:${selectedCar.hex}"></span> ${selectedCar.color}`
