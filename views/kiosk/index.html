@@ -4,197 +4,274 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MyKeyBox</title>
-    <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Montserrat:wght@400;500;600;700&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --color-main: #FFD700;
-            --color-dark: #0D0D0D;
-            --color-bg: #1a1a1a;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Montserrat', sans-serif; background: var(--color-dark); color: #fff; height: 100vh; overflow: hidden; user-select: none; }
+        @font-face { font-family: 'Montserrat'; src: url('assets/fonts/Montserrat-Bold.ttf') format('truetype'); }
+        @font-face { font-family: 'MontserratRegular'; src: url('assets/fonts/Montserrat-Regular.ttf') format('truetype'); }
+        @font-face { font-family: 'Prompt'; src: url('assets/fonts/Prompt-Bold.ttf') format('truetype'); }
+        @font-face { font-family: 'RussoOne'; src: url('assets/fonts/RussoOne-Regular.ttf') format('truetype'); }
 
-        /* Screens */
+        :root {
+            --color-main: #FEDC01;
+            --color-dark: #0D0D0D;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; font-weight: normal; }
+        body {
+            min-height: 100vh;
+            background: url('assets/image/bg.svg') center fixed;
+            color: var(--color-main);
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 15px;
+            font-weight: bold;
+            user-select: none;
+            cursor: none;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        * { -webkit-tap-highlight-color: rgba(0, 0, 0, 0.3); }
+        a { text-decoration: none; }
+        button { outline: none; border: none; }
+
         .screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; position: relative; }
         .screen.active { display: flex; }
 
-        /* ── WELCOME SCREEN ── */
-        #welcome { background: var(--color-dark); cursor: pointer; }
+        /* ── WELCOME (exact production copy) ── */
+        #welcome { cursor: pointer; }
 
-        .device-info { position: absolute; top: 15px; right: 20px; font-size: 14px; font-family: 'Montserrat', sans-serif; }
-        .device-info .label { color: #888; }
-        .device-info .code { color: var(--color-main); font-weight: 700; }
+        .logo-img { position: absolute; top: 5px; left: 10px; height: 120px; z-index: 100; }
 
-        .logo-area { position: absolute; top: 15px; left: 20px; display: flex; align-items: center; gap: 10px; }
-        .logo-area .logo-icon { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-        .logo-area .logo-icon svg { width: 40px; height: 40px; }
-        .logo-area .logo-text { font-family: 'Russo One', sans-serif; font-size: 16px; color: #fff; line-height: 1.1; }
-        .logo-area .logo-sub { font-size: 8px; color: var(--color-main); letter-spacing: 2px; text-transform: uppercase; }
+        .unique-code { position: absolute; z-index: 100000; top: 5px; right: 10px; font-family: RussoOne, sans-serif; font-size: 25px; }
+        .unique-code .code-title { color: white; }
+        .unique-code .code { color: var(--color-main); }
 
-        .welcome-text { font-family: 'Montserrat', sans-serif; font-size: 50px; font-weight: 700; color: #fff; margin-bottom: 0; }
-        .mykeybox-text { font-family: 'Russo One', sans-serif; font-size: 120px; color: var(--color-main); font-style: italic; line-height: 1; margin-bottom: 30px; }
-        .press-btn { font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 700; color: var(--color-dark); background: var(--color-main); border: none; border-radius: 34px; padding: 22px 60px; cursor: pointer; transition: transform 0.15s; }
-        .press-btn:active { transform: scale(0.97); }
+        .homepage .welcome-text { margin-top: 70px; font-size: 70px; color: white; text-align: center; font-family: Montserrat, sans-serif; }
+        .homepage .mykeybox-text { font-size: 170px; color: var(--color-main); text-align: center; font-family: RussoOne, sans-serif; }
+        .homepage .press-to-start {
+            color: var(--color-dark);
+            background-color: var(--color-main);
+            border-radius: 34px;
+            font-size: 50px;
+            padding: 28px 48px;
+            margin-top: 70px;
+            font-family: Montserrat, sans-serif;
+            border: none;
+            cursor: pointer;
+        }
+        .homepage .version { font-size: 12px; color: #555; margin-top: 20px; font-family: MontserratRegular, sans-serif; }
 
-        .version-text { position: absolute; bottom: 50px; left: 20px; font-size: 12px; color: #555; }
+        /* Door status grid (exact production) */
+        .door-status { position: absolute; left: 14px; bottom: 30px; z-index: 1000; background: rgba(30, 30, 30, 0.85); border-radius: 12px; padding: 10px 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .door-status-header { color: #FEDC01; font-size: 12px; text-align: center; margin-bottom: 8px; letter-spacing: 2px; font-family: Montserrat, sans-serif; }
+        .door-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; }
+        .door-cell { width: 38px; height: 34px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border: 2px solid transparent; font-family: Montserrat, sans-serif; }
+        .door-cell.free { background: rgba(254, 220, 1, 0.12); border-color: rgba(254, 220, 1, 0.6); color: #FEDC01; }
+        .door-cell.busy { background: rgba(82, 254, 1, 0.1); border-color: rgba(82, 254, 1, 0.6); color: #52FE01; }
+        .door-cell.open { background: rgba(254, 1, 1, 0.15); border-color: rgba(254, 1, 1, 0.6); color: #FE0101; }
 
-        /* Box Status Grid */
-        .box-grid { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
-        .box-grid .grid-title { font-size: 10px; color: #888; text-align: center; margin-bottom: 4px; letter-spacing: 1px; }
-        .box-grid table { border-collapse: collapse; }
-        .box-grid td { width: 32px; height: 24px; text-align: center; font-size: 11px; font-weight: 600; border: 1px solid #333; }
-        .box-free { background: var(--color-main); color: var(--color-dark); }
-        .box-busy { background: #ef4444; color: #fff; }
-        .box-empty { background: #333; color: #666; }
+        /* ── PIN SCREEN (matches CodeView.vue) ── */
+        #pin-screen .enter-code-text { margin-top: 10px; text-align: center; }
+        #pin-screen .enter-code-text .color-white { color: white; font-size: 30px; font-family: Montserrat, sans-serif; }
+        #pin-screen .enter-code-text .color-main { color: var(--color-main); font-size: 30px; font-family: Montserrat, sans-serif; }
 
-        /* Status bar bottom */
-        .status-bar { position: absolute; bottom: 15px; display: flex; gap: 16px; }
-        .status-dot { width: 60px; text-align: center; font-size: 11px; color: #666; }
-        .status-dot .dot { width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 4px; }
-        .dot-available { background: var(--color-main); }
-        .dot-out { background: #ef4444; }
-        .dot-reserved { background: #f59e0b; }
-        .dot-empty { background: #333; }
+        .title-logo { font-family: RussoOne, sans-serif; color: var(--color-main); font-size: 40px; text-align: center; margin-bottom: 5px; }
 
-        /* ── PIN SCREEN ── */
-        #pin-screen { background: var(--color-dark); }
-        #pin-screen .title { font-size: 24px; color: #fff; margin-bottom: 6px; }
-        #pin-screen .subtitle { margin-bottom: 25px; }
-        #pin-screen .subtitle .white { color: #fff; font-size: 22px; }
-        #pin-screen .subtitle .yellow { color: var(--color-main); font-size: 22px; }
+        .code-container { position: relative; margin-top: 10px; }
+        .code-wrapper { display: flex; justify-content: center; }
+        .code-wrapper span.dash { font-size: 35px; color: white; margin: 0 10px; font-family: Prompt, sans-serif; line-height: 60px; }
+        .code-wrapper input {
+            pointer-events: none;
+            width: 60px; height: 60px;
+            background-color: #363636;
+            border-radius: 12px;
+            color: white;
+            border: 3px solid rgba(0, 0, 0, 0);
+            font-size: 40px;
+            margin: 4px;
+            text-align: center;
+            font-family: Prompt, sans-serif;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .code-wrapper input.filled { border-color: var(--color-main); }
+        .code-wrapper input.invalid { border-color: #FE0101 !important; }
+        .code-wrapper input.valid { border-color: #52FE01 !important; }
 
-        .pin-display { display: flex; gap: 8px; margin-bottom: 10px; }
-        .pin-box { width: 55px; height: 55px; background: #363636; border-radius: 12px; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; font-family: 'Prompt', sans-serif; font-size: 32px; color: #fff; transition: border-color 0.2s; }
-        .pin-box.filled { border-color: var(--color-main); }
-        .pin-error { color: #FE0101; font-size: 22px; min-height: 40px; display: flex; align-items: center; }
-        .pin-valid { color: #52FE01; font-size: 22px; min-height: 40px; display: flex; align-items: center; }
+        .message { height: 55px; font-size: 30px; text-align: center; font-family: Montserrat, sans-serif; }
+        .message .invalid-msg { color: #FE0101; }
+        .message .valid-msg { color: #52FE01; }
 
-        .numpad { display: flex; flex-wrap: wrap; width: 380px; justify-content: center; margin: 0 auto; }
-        .numpad button { flex: 0 0 calc(33.3% - 10px); margin: 5px; height: 65px; font-family: 'Montserrat', sans-serif; font-size: 40px; font-weight: 500; border: none; border-radius: 13px; background: #363636; color: #fff; cursor: pointer; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
-        .numpad button:active { opacity: 0.7; }
-        .numpad button.enter-btn { background: var(--color-main); color: var(--color-dark); font-size: 20px; }
-        .numpad button.delete-btn { background: #A9A9A9; color: var(--color-dark); font-size: 20px; }
-        .numpad button:disabled { opacity: 0.2; }
+        .keyboard { display: flex; flex-wrap: wrap; width: 440px; margin: auto; justify-content: center; }
+        .keyboard div {
+            flex: calc(31% - 5px);
+            margin: 5px;
+            border-radius: 13px;
+            font-size: 50px;
+            text-align: center;
+            height: 70px;
+            background-color: #363636;
+            color: white;
+            padding: 8px 8px;
+            line-height: 60px;
+            min-width: 110px;
+            max-width: 110px;
+            font-family: Montserrat, sans-serif;
+            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .keyboard div.enter-key { background-color: var(--color-main); line-height: 1; display: flex; align-items: center; justify-content: center; }
+        .keyboard div.delete-key { line-height: 1; background-color: #A9A9A9; display: flex; align-items: center; justify-content: center; }
+        .keyboard div.disabled { opacity: 0.2; pointer-events: none; }
+
+        .try-again-btn {
+            color: var(--color-dark);
+            background-color: var(--color-main);
+            border-radius: 24px;
+            font-size: 28px;
+            padding: 18px 48px;
+            margin-top: 100px;
+            font-family: Montserrat, sans-serif;
+            border: none;
+        }
+
+        /* Back button */
+        .back-btn-circle { position: absolute; top: 20px; left: 20px; z-index: 100; cursor: pointer; }
 
         /* ── ACTION SCREEN ── */
-        #action-screen { background: var(--color-dark); }
-        .user-greeting { font-size: 28px; color: #fff; font-weight: 600; margin-bottom: 4px; }
-        .user-role { font-size: 14px; color: #888; margin-bottom: 35px; text-transform: uppercase; letter-spacing: 1px; }
-        .action-buttons { display: flex; gap: 24px; margin-bottom: 30px; }
-        .action-btn { width: 200px; height: 150px; border: 2px solid #363636; background: #1a1a1a; color: #fff; border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 600; transition: border-color 0.2s; font-family: 'Montserrat', sans-serif; }
-        .action-btn:hover { border-color: var(--color-main); }
-        .action-btn .icon { font-size: 36px; }
-        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .keys-info { background: #1a1a1a; border: 1px solid #333; padding: 16px 24px; border-radius: 10px; font-size: 14px; color: #888; max-width: 440px; }
+        #action-screen { background: transparent; }
+        .user-greeting { font-size: 40px; color: white; font-weight: 600; margin-bottom: 4px; font-family: Montserrat, sans-serif; }
+        .user-role { font-size: 18px; color: #888; margin-bottom: 35px; text-transform: uppercase; letter-spacing: 2px; font-family: MontserratRegular, sans-serif; }
+        .action-buttons { display: flex; gap: 30px; margin-bottom: 30px; }
+        .action-btn {
+            width: 240px; height: 180px;
+            border: 2px solid #363636;
+            background: rgba(30, 30, 30, 0.85);
+            color: #fff; border-radius: 20px;
+            cursor: pointer; display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; font-size: 22px; font-weight: 600;
+            transition: border-color 0.3s;
+            font-family: Montserrat, sans-serif;
+        }
+        .action-btn:hover, .action-btn:active { border-color: var(--color-main); }
+        .action-btn .icon { font-size: 42px; }
+        .action-btn:disabled { opacity: 0.3; pointer-events: none; }
+        .keys-info {
+            background: rgba(30, 30, 30, 0.85);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 18px 28px; border-radius: 12px;
+            font-size: 16px; color: #aaa; max-width: 500px;
+            font-family: MontserratRegular, sans-serif;
+        }
         .keys-info .item { color: var(--color-main); margin-top: 6px; }
 
         /* ── SLOT SELECTION ── */
-        #slot-screen { background: var(--color-dark); }
-        #slot-screen .title { font-size: 22px; color: #fff; margin-bottom: 20px; font-weight: 600; }
-        .slot-list { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow-y: auto; }
-        .slot-card { padding: 18px; border: 2px solid #363636; background: #1a1a1a; border-radius: 12px; cursor: pointer; transition: border-color 0.2s; }
+        #slot-screen .title { font-size: 28px; color: white; margin-bottom: 24px; font-weight: 600; font-family: Montserrat, sans-serif; }
+        .slot-list { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 12px; max-height: 65vh; overflow-y: auto; }
+        .slot-card { padding: 20px; border: 2px solid #363636; background: rgba(30, 30, 30, 0.85); border-radius: 14px; cursor: pointer; transition: border-color 0.3s; }
         .slot-card:hover { border-color: var(--color-main); }
-        .slot-card.disabled { opacity: 0.4; cursor: not-allowed; }
+        .slot-card.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
         .slot-card .slot-header { display: flex; justify-content: space-between; align-items: center; }
-        .slot-card .slot-name { font-size: 16px; font-weight: 600; }
-        .slot-card .slot-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-        .slot-card .slot-vin { font-size: 12px; color: #666; margin-top: 4px; }
-        .st-available { background: rgba(255,215,0,0.15); color: var(--color-main); }
-        .st-out { background: rgba(239,68,68,0.15); color: #ef4444; }
-        .st-reserved { background: rgba(245,158,11,0.15); color: #f59e0b; }
-        .st-empty { background: rgba(51,51,51,0.5); color: #666; }
+        .slot-card .slot-name { font-size: 18px; font-weight: 600; color: white; font-family: Montserrat, sans-serif; }
+        .slot-card .slot-status { font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-family: Montserrat, sans-serif; }
+        .slot-card .slot-vin { font-size: 13px; color: #888; margin-top: 5px; font-family: MontserratRegular, sans-serif; }
+        .st-available { background: rgba(254, 220, 1, 0.15); color: var(--color-main); }
+        .st-out { background: rgba(254, 1, 1, 0.15); color: #FE0101; }
+        .st-reserved { background: rgba(82, 254, 1, 0.1); color: #52FE01; }
+        .st-empty { background: rgba(54, 54, 54, 0.5); color: #666; }
 
-        /* ── DOOR SCREEN ── */
-        #door-screen { background: var(--color-dark); }
-        .door-visual { width: 120px; height: 160px; border: 3px solid var(--color-main); border-radius: 8px; margin-bottom: 25px; animation: doorSwing 1.5s ease-in-out infinite; }
+        /* ── DOOR OPEN ── */
+        .door-visual { width: 140px; height: 180px; border: 3px solid var(--color-main); border-radius: 10px; margin-bottom: 30px; animation: doorSwing 1.5s ease-in-out infinite; }
         @keyframes doorSwing { 0%, 100% { transform: perspective(600px) rotateY(0deg); } 50% { transform: perspective(600px) rotateY(-30deg); } }
-        .door-message { font-size: 28px; color: var(--color-main); font-weight: 700; margin-bottom: 10px; }
-        .door-instruction { font-size: 18px; color: #aaa; margin-bottom: 20px; }
-        .door-timer { font-size: 13px; color: #555; }
+        .door-message { font-size: 36px; color: var(--color-main); font-weight: 700; margin-bottom: 12px; font-family: Montserrat, sans-serif; }
+        .door-instruction { font-size: 22px; color: #aaa; margin-bottom: 20px; font-family: MontserratRegular, sans-serif; }
+        .door-timer { font-size: 14px; color: #555; font-family: MontserratRegular, sans-serif; }
 
-        /* ── DONE SCREEN ── */
-        #done-screen { background: var(--color-dark); }
-        .done-check { font-size: 72px; color: #52FE01; margin-bottom: 16px; }
-        .done-message { font-size: 24px; color: #fff; font-weight: 600; margin-bottom: 10px; }
-        .done-details { font-size: 14px; color: #888; text-align: center; line-height: 1.8; }
+        /* ── DONE ── */
+        .done-check { font-size: 80px; color: #52FE01; margin-bottom: 16px; }
+        .done-message { font-size: 30px; color: white; font-weight: 600; margin-bottom: 10px; font-family: Montserrat, sans-serif; }
+        .done-details { font-size: 16px; color: #888; text-align: center; line-height: 1.8; font-family: MontserratRegular, sans-serif; }
 
         /* ── COMMON ── */
-        .back-link { position: absolute; top: 20px; left: 20px; }
-        .back-link svg { width: 40px; height: 40px; }
-        .cancel-btn { margin-top: 25px; padding: 12px 36px; background: none; border: 1px solid #444; color: #888; border-radius: 8px; font-size: 15px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
-        .cancel-btn:hover { border-color: #ef4444; color: #ef4444; }
-        .back-btn { margin-top: 15px; padding: 10px 28px; background: none; border: 1px solid #333; color: #666; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: 'Montserrat', sans-serif; }
+        .cancel-btn {
+            margin-top: 30px; padding: 14px 40px;
+            background: none; border: 1px solid #444;
+            color: #888; border-radius: 10px; font-size: 16px;
+            font-family: Montserrat, sans-serif;
+        }
     </style>
 </head>
 <body>
 
     <!-- WELCOME -->
-    <div id="welcome" class="screen active" onclick="showScreen('pin-screen')">
-        <div class="logo-area">
-            <div class="logo-icon">
-                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="2" width="36" height="36" rx="4" stroke="#FFD700" stroke-width="2" fill="none"/>
-                    <rect x="8" y="14" width="10" height="14" rx="2" fill="#FFD700"/>
-                    <rect x="22" y="14" width="10" height="14" rx="2" fill="#FFD700"/>
-                    <circle cx="20" cy="10" r="4" stroke="#FFD700" stroke-width="2" fill="none"/>
-                </svg>
-            </div>
-            <div>
-                <div class="logo-text">MY<br>KEY<br>BOX</div>
-                <div class="logo-sub">Secure Key Retrieval</div>
-            </div>
-        </div>
+    <div id="welcome" class="screen active homepage" onclick="showScreen('pin-screen')">
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
 
-        <div class="device-info">
-            <span class="label">Device: </span><span class="code" id="welcome-device">DEMO-1</span>
+        <div class="unique-code">
+            <span class="code-title">Device: </span>
+            <span class="code" id="welcome-device">DEMO-1</span>
         </div>
 
         <div class="welcome-text">Welcome to</div>
         <div class="mykeybox-text">MyKeyBox</div>
-        <button class="press-btn" onclick="event.stopPropagation(); showScreen('pin-screen')">Press to start</button>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+            <button class="press-to-start" onclick="event.stopPropagation(); showScreen('pin-screen')">Press to start</button>
+        </div>
+        <div class="version">version 1.0.0</div>
 
-        <div class="version-text">version 1.0.0</div>
-
-        <div class="box-grid" id="welcome-boxes" onclick="event.stopPropagation()"></div>
+        <div class="door-status" id="welcome-boxes" onclick="event.stopPropagation()"></div>
     </div>
 
     <!-- PIN ENTRY -->
     <div id="pin-screen" class="screen">
-        <div class="back-link" onclick="goHome()">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FFD700" stroke-width="2"/><path d="M24 12L16 20L24 28" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div class="back-btn-circle" onclick="goHome()">
+            <svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg>
         </div>
-        <div class="title" style="font-family:'Russo One'; color:var(--color-main); font-size:32px; margin-bottom:15px;">MyKeyBox</div>
-        <div class="subtitle">
-            <span class="white">Please enter your </span>
-            <span class="yellow">PIN code</span>
-        </div>
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
+        <div class="unique-code"><span class="code-title">Device: </span><span class="code">DEMO-1</span></div>
 
-        <div class="pin-display" id="pin-dots"></div>
-        <div id="pin-error" class="pin-error"></div>
-
-        <div class="numpad" id="numpad">
-            <button onclick="pinPress('1')">1</button>
-            <button onclick="pinPress('2')">2</button>
-            <button onclick="pinPress('3')">3</button>
-            <button onclick="pinPress('4')">4</button>
-            <button onclick="pinPress('5')">5</button>
-            <button onclick="pinPress('6')">6</button>
-            <button onclick="pinPress('7')">7</button>
-            <button onclick="pinPress('8')">8</button>
-            <button onclick="pinPress('9')">9</button>
-            <button class="delete-btn" onclick="pinBackspace()">&#10005;</button>
-            <button onclick="pinPress('0')">0</button>
-            <button class="enter-btn" onclick="pinSubmit()">&#10148;</button>
+        <div class="title-logo">MyKeyBox</div>
+        <div class="enter-code-text">
+            <span class="color-white">Please enter your </span>
+            <span class="color-main">PIN code</span>
         </div>
 
-        <button class="cancel-btn" onclick="goHome()">CANCEL</button>
+        <div class="code-container">
+            <div class="code-wrapper" id="pin-boxes"></div>
+        </div>
+
+        <div class="message" id="pin-message"></div>
+
+        <div id="pin-keyboard">
+            <div class="keyboard" id="numpad">
+                <div onclick="pinPress('1')">1</div>
+                <div onclick="pinPress('2')">2</div>
+                <div onclick="pinPress('3')">3</div>
+                <div onclick="pinPress('4')">4</div>
+                <div onclick="pinPress('5')">5</div>
+                <div onclick="pinPress('6')">6</div>
+                <div onclick="pinPress('7')">7</div>
+                <div onclick="pinPress('8')">8</div>
+                <div onclick="pinPress('9')">9</div>
+                <div class="delete-key" onclick="pinBackspace()">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><g clip-path="url(#c1)"><path d="M26.67 13.33a1.67 1.67 0 00-2.36 0L20 17.64l-4.31-4.31a1.67 1.67 0 10-2.36 2.36L17.64 20l-4.31 4.31a1.67 1.67 0 102.36 2.36L20 22.36l4.31 4.31a1.67 1.67 0 102.36-2.36L22.36 20l4.31-4.31a1.67 1.67 0 000-2.36z" fill="#0D0D0D"/><path d="M20 0a20 20 0 100 40 20 20 0 000-40zm0 36.67a16.67 16.67 0 110-33.34 16.67 16.67 0 010 33.34z" fill="#0D0D0D"/></g><defs><clipPath id="c1"><rect width="40" height="40" fill="white"/></clipPath></defs></svg>
+                </div>
+                <div onclick="pinPress('0')">0</div>
+                <div class="enter-key" onclick="pinSubmit()">
+                    <svg width="40" height="24" viewBox="0 0 40 29" fill="none"><path d="M40 17a5.7 5.7 0 00-1.69-3.98L26.06.82a2.86 2.86 0 00-4.03 0 2.84 2.84 0 000 4.03l9.4 9.3H2.86a2.86 2.86 0 000 5.67h28.57l-9.4 9.33a2.84 2.84 0 000 4.01 2.86 2.86 0 004.03 0l12.26-12.19A5.7 5.7 0 0040 17z" fill="#0D0D0D"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div id="pin-tryagain" style="display:none;">
+            <div style="display:flex;justify-content:center;"><button class="try-again-btn" onclick="pinReset()">Try again</button></div>
+        </div>
     </div>
 
     <!-- ACTION CHOICE -->
     <div id="action-screen" class="screen">
-        <div class="back-link" onclick="goHome()">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FFD700" stroke-width="2"/><path d="M24 12L16 20L24 28" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div class="back-btn-circle" onclick="goHome()">
+            <svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg>
         </div>
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="user-greeting" id="greeting"></div>
         <div class="user-role" id="user-role"></div>
         <div class="action-buttons" id="action-buttons"></div>
@@ -204,9 +281,10 @@
 
     <!-- SLOT SELECTION -->
     <div id="slot-screen" class="screen">
-        <div class="back-link" onclick="showScreen('action-screen')">
-            <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#FFD700" stroke-width="2"/><path d="M24 12L16 20L24 28" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div class="back-btn-circle" onclick="showScreen('action-screen')">
+            <svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg>
         </div>
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="title" id="slot-title">Select Key</div>
         <div class="slot-list" id="slot-list"></div>
         <button class="cancel-btn" onclick="goHome()">CANCEL</button>
@@ -214,6 +292,7 @@
 
     <!-- DOOR OPEN -->
     <div id="door-screen" class="screen">
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="door-visual"></div>
         <div class="door-message" id="door-message">DOOR IS OPEN</div>
         <div class="door-instruction" id="door-instruction">Take your key</div>
@@ -222,6 +301,7 @@
 
     <!-- DONE -->
     <div id="done-screen" class="screen">
+        <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="done-check">&#10003;</div>
         <div class="done-message" id="done-message">Done</div>
         <div class="done-details" id="done-details"></div>
@@ -229,217 +309,145 @@
 
     <script>
         const API = '/api/kiosk'
-        let currentUser = null
-        let currentAction = null
-        let currentMode = 'internal'
-        let pin = ''
+        let currentUser = null, currentAction = null, currentMode = 'internal'
+        let pin = '', pinState = 'entry' // entry | invalid | valid
         let inactivityTimer = null
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
             document.getElementById(id).classList.add('active')
             resetInactivity()
-            if (id === 'pin-screen') { pin = ''; updatePinDots(); document.getElementById('pin-error').textContent = ''; document.getElementById('pin-error').className = 'pin-error'; }
+            if (id === 'pin-screen') { pin = ''; pinState = 'entry'; renderPinBoxes(); document.getElementById('pin-message').innerHTML = ''; document.getElementById('pin-keyboard').style.display = ''; document.getElementById('pin-tryagain').style.display = 'none'; }
             if (id === 'welcome') loadWelcomeStatus()
         }
+        function goHome() { currentUser = null; currentAction = null; pin = ''; showScreen('welcome') }
+        function resetInactivity() { clearTimeout(inactivityTimer); inactivityTimer = setTimeout(goHome, 90000) }
 
-        function goHome() {
-            currentUser = null; currentAction = null; pin = ''
-            showScreen('welcome')
+        // ── PIN ────────────────────────────────
+        function renderPinBoxes() {
+            const w = document.getElementById('pin-boxes')
+            let html = ''
+            for (let i = 0; i < 6; i++) {
+                let cls = ''
+                if (i < pin.length) cls = 'filled'
+                if (pinState === 'invalid') cls = 'invalid'
+                if (pinState === 'valid') cls = 'valid'
+                html += `<input class="${cls}" value="${i < pin.length ? pin[i] : ''}" readonly disabled />`
+            }
+            w.innerHTML = html
+        }
+        function pinPress(d) {
+            if (pin.length >= 6 || pinState !== 'entry') return
+            pin += d; renderPinBoxes()
+        }
+        function pinBackspace() { if (pin.length > 0 && pinState === 'entry') { pin = pin.slice(0,-1); renderPinBoxes() } }
+        function pinSubmit() { if (pin.length >= 4 && pinState === 'entry') verifyPin() }
+        function pinReset() { pin = ''; pinState = 'entry'; renderPinBoxes(); document.getElementById('pin-message').innerHTML = ''; document.getElementById('pin-keyboard').style.display = ''; document.getElementById('pin-tryagain').style.display = 'none'; }
+
+        async function verifyPin() {
+            try {
+                const res = await fetch(API + '/verify-pin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin }) })
+                const data = await res.json()
+                if (data.success) {
+                    pinState = 'valid'; renderPinBoxes()
+                    document.getElementById('pin-message').innerHTML = '<span class="valid-msg">PIN code is correct!</span>'
+                    currentUser = data.user; currentMode = data.mode
+                    setTimeout(() => showActionScreen(data), 800)
+                } else {
+                    pinState = 'invalid'; renderPinBoxes()
+                    document.getElementById('pin-message').innerHTML = '<span class="invalid-msg">PIN code is incorrect</span>'
+                    document.getElementById('pin-keyboard').style.display = 'none'
+                    document.getElementById('pin-tryagain').style.display = ''
+                }
+            } catch { pinState = 'invalid'; renderPinBoxes(); document.getElementById('pin-message').innerHTML = '<span class="invalid-msg">Connection error</span>'; document.getElementById('pin-keyboard').style.display = 'none'; document.getElementById('pin-tryagain').style.display = '' }
         }
 
-        function resetInactivity() {
-            clearTimeout(inactivityTimer)
-            inactivityTimer = setTimeout(goHome, 90000)
-        }
-
-        // ── Welcome ────────────────────────────────
-
+        // ── Welcome Status ─────────────────────
         async function loadWelcomeStatus() {
             try {
                 const res = await fetch(API + '/slots')
                 const data = await res.json()
-                const grid = document.getElementById('welcome-boxes')
-                if (data.slots.length === 0) { grid.innerHTML = ''; return }
-
-                let html = '<div class="grid-title">BOXES</div><table>'
-                for (let i = 0; i < data.slots.length; i += 2) {
-                    html += '<tr>'
-                    for (let j = i; j < i + 2 && j < data.slots.length; j++) {
-                        const s = data.slots[j]
-                        let cls = 'box-empty'
-                        if (s.status === 'available') cls = 'box-free'
-                        else if (s.status === 'checked_out' || s.status === 'reserved') cls = 'box-busy'
-                        html += `<td class="${cls}">${s.door_number}</td>`
-                    }
-                    html += '</tr>'
-                }
-                html += '</table>'
-                grid.innerHTML = html
+                const el = document.getElementById('welcome-boxes')
+                if (!data.slots.length) { el.innerHTML = ''; return }
+                let html = '<div class="door-status-header">BOXES</div><div class="door-grid">'
+                data.slots.forEach(s => {
+                    let cls = 'free'
+                    if (s.status === 'checked_out') cls = 'busy'
+                    else if (s.status === 'reserved') cls = 'busy'
+                    else if (s.status === 'empty') cls = 'free'
+                    html += `<div class="door-cell ${cls}">${s.door_number}</div>`
+                })
+                html += '</div>'
+                el.innerHTML = html
             } catch {}
         }
 
-        // ── PIN ────────────────────────────────────
-
-        function updatePinDots() {
-            const container = document.getElementById('pin-dots')
-            container.innerHTML = ''
-            for (let i = 0; i < 6; i++) {
-                const box = document.createElement('div')
-                box.className = 'pin-box' + (i < pin.length ? ' filled' : '')
-                box.textContent = i < pin.length ? pin[i] : ''
-                container.appendChild(box)
-            }
-        }
-
-        function pinPress(digit) {
-            if (pin.length >= 6) return
-            pin += digit
-            updatePinDots()
-            document.getElementById('pin-error').textContent = ''
-            document.getElementById('pin-error').className = 'pin-error'
-        }
-
-        function pinBackspace() { pin = pin.slice(0, -1); updatePinDots() }
-
-        function pinSubmit() { if (pin.length >= 4) verifyPin() }
-
-        async function verifyPin() {
-            try {
-                const res = await fetch(API + '/verify-pin', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pin })
-                })
-                const data = await res.json()
-                if (data.success) {
-                    document.getElementById('pin-error').textContent = 'PIN code is correct!'
-                    document.getElementById('pin-error').className = 'pin-valid'
-                    currentUser = data.user
-                    currentMode = data.mode
-                    setTimeout(() => showActionScreen(data), 800)
-                } else {
-                    document.getElementById('pin-error').textContent = 'PIN code is incorrect'
-                    document.getElementById('pin-error').className = 'pin-error'
-                    pin = ''; updatePinDots()
-                }
-            } catch {
-                document.getElementById('pin-error').textContent = 'Connection error'
-                pin = ''; updatePinDots()
-            }
-        }
-
-        // ── Actions ────────────────────────────────
-
+        // ── Actions ────────────────────────────
         function showActionScreen(data) {
             document.getElementById('greeting').textContent = `Welcome, ${data.user.name}`
             document.getElementById('user-role').textContent = data.user.role
-
             const btns = document.getElementById('action-buttons')
             if (currentMode === 'handoff') {
-                btns.innerHTML = `
-                    <button class="action-btn" onclick="selectAction('place')"><span class="icon">&#8595;</span>PLACE KEY</button>
-                    <button class="action-btn" onclick="selectAction('retrieve')"><span class="icon">&#8593;</span>RETRIEVE KEY</button>`
+                btns.innerHTML = `<button class="action-btn" onclick="selectAction('place')"><span class="icon">&#8595;</span>PLACE KEY</button><button class="action-btn" onclick="selectAction('retrieve')"><span class="icon">&#8593;</span>RETRIEVE KEY</button>`
             } else {
-                const canCheckout = data.keys_out < data.user.max_keys && data.available_slots.length > 0
-                btns.innerHTML = `
-                    <button class="action-btn" onclick="selectAction('checkout')" ${canCheckout ? '' : 'disabled'}><span class="icon">&#128273;</span>PICK UP KEY</button>
-                    <button class="action-btn" onclick="selectAction('return')" ${data.user_slots.length > 0 ? '' : 'disabled'}><span class="icon">&#128229;</span>RETURN KEY</button>`
+                const canCO = data.keys_out < data.user.max_keys && data.available_slots.length > 0
+                btns.innerHTML = `<button class="action-btn" onclick="selectAction('checkout')" ${canCO?'':'disabled'}><span class="icon">&#128273;</span>PICK UP KEY</button><button class="action-btn" onclick="selectAction('return')" ${data.user_slots.length?'':'disabled'}><span class="icon">&#128229;</span>RETURN KEY</button>`
             }
-
             const info = document.getElementById('keys-out-info')
-            info.innerHTML = data.user_slots.length > 0
-                ? `Your keys out: ${data.keys_out}` + data.user_slots.map(s => `<div class="item">Door ${s.door_number}: ${s.label || 'Unnamed'}</div>`).join('')
-                : 'No keys checked out'
-
+            info.innerHTML = data.user_slots.length > 0 ? `Your keys out: ${data.keys_out}` + data.user_slots.map(s=>`<div class="item">Door ${s.door_number}: ${s.label||'Unnamed'}</div>`).join('') : 'No keys checked out'
             showScreen('action-screen')
         }
 
-        // ── Slot Selection ─────────────────────────
-
+        // ── Slots ──────────────────────────────
         async function selectAction(action) {
             currentAction = action
-            const res = await fetch(API + '/slots')
-            const data = await res.json()
-
-            const titles = { checkout: 'Select Key to Pick Up', return: 'Select Key to Return', place: 'Select Door to Place Key', retrieve: 'Select Key to Retrieve' }
-            document.getElementById('slot-title').textContent = titles[action] || 'Select Key'
-
+            const res = await fetch(API + '/slots'); const data = await res.json()
+            const titles = { checkout:'Select Key to Pick Up', return:'Select Key to Return', place:'Select Door to Place Key', retrieve:'Select Key to Retrieve' }
+            document.getElementById('slot-title').textContent = titles[action]||'Select Key'
             const list = document.getElementById('slot-list')
             list.innerHTML = data.slots.map(s => {
-                let canSelect = false, statusClass = 'st-empty', statusText = 'Empty'
-
-                if (action === 'checkout' && s.status === 'available') { canSelect = true; statusClass = 'st-available'; statusText = 'Available' }
-                else if (action === 'return' && s.status === 'checked_out' && s.checked_out_by === currentUser.id) { canSelect = true; statusClass = 'st-out'; statusText = 'Your Key' }
-                else if (action === 'place' && (s.status === 'empty' || s.status === 'available')) { canSelect = true; statusClass = 'st-available'; statusText = s.status === 'empty' ? 'Empty Slot' : 'Available' }
-                else if (action === 'retrieve' && s.status === 'reserved') { canSelect = true; statusClass = 'st-reserved'; statusText = 'Ready for Pickup' }
-                else {
-                    if (s.status === 'available') { statusClass = 'st-available'; statusText = 'Available' }
-                    else if (s.status === 'checked_out') { statusClass = 'st-out'; statusText = 'Checked Out' }
-                    else if (s.status === 'reserved') { statusClass = 'st-reserved'; statusText = 'Reserved' }
-                }
-
-                return `<div class="slot-card ${canSelect ? '' : 'disabled'}" onclick="${canSelect ? `performAction(${s.id}, ${s.door_number})` : ''}">
-                    <div class="slot-header">
-                        <span class="slot-name">Door ${s.door_number}${s.label ? ' — ' + s.label : ''}</span>
-                        <span class="slot-status ${statusClass}">${statusText}</span>
-                    </div>
-                    ${s.vin ? `<div class="slot-vin">VIN: ${s.vin}</div>` : ''}
-                </div>`
+                let canSel=false, stCls='st-empty', stTxt='Empty'
+                if(action==='checkout'&&s.status==='available'){canSel=true;stCls='st-available';stTxt='Available'}
+                else if(action==='return'&&s.status==='checked_out'&&s.checked_out_by===currentUser.id){canSel=true;stCls='st-out';stTxt='Your Key'}
+                else if(action==='place'&&(s.status==='empty'||s.status==='available')){canSel=true;stCls='st-available';stTxt=s.status==='empty'?'Empty Slot':'Available'}
+                else if(action==='retrieve'&&s.status==='reserved'){canSel=true;stCls='st-reserved';stTxt='Ready for Pickup'}
+                else{if(s.status==='available'){stCls='st-available';stTxt='Available'}else if(s.status==='checked_out'){stCls='st-out';stTxt='Checked Out'}else if(s.status==='reserved'){stCls='st-reserved';stTxt='Reserved'}}
+                return `<div class="slot-card ${canSel?'':'disabled'}" onclick="${canSel?`performAction(${s.id},${s.door_number})`:''}"><div class="slot-header"><span class="slot-name">Door ${s.door_number}${s.label?' — '+s.label:''}</span><span class="slot-status ${stCls}">${stTxt}</span></div>${s.vin?`<div class="slot-vin">VIN: ${s.vin}</div>`:''}</div>`
             }).join('')
-
             showScreen('slot-screen')
         }
 
-        // ── Perform Action ─────────────────────────
-
-        async function performAction(slotId, doorNumber) {
-            const endpoints = { checkout: '/checkout', return: '/return', place: '/place-key', retrieve: '/retrieve-key' }
-            const instructions = { checkout: 'Take your key', return: 'Place your key inside', place: 'Place the key inside', retrieve: 'Take the key' }
-
+        async function performAction(slotId, doorNum) {
+            const ep={checkout:'/checkout',return:'/return',place:'/place-key',retrieve:'/retrieve-key'}
+            const inst={checkout:'Take your key',return:'Place your key inside',place:'Place the key inside',retrieve:'Take the key'}
             try {
-                const res = await fetch(API + endpoints[currentAction], {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: currentUser.id, slot_id: slotId })
-                })
+                const res = await fetch(API+ep[currentAction],{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,slot_id:slotId})})
                 const data = await res.json()
-                if (data.success) {
-                    showDoorScreen(`DOOR ${doorNumber} IS OPEN`, instructions[currentAction], doorNumber)
-                } else {
-                    alert(data.message || 'Action failed')
-                }
-            } catch { alert('Connection error') }
+                if(data.success) showDoorScreen(`DOOR ${doorNum} IS OPEN`,inst[currentAction],doorNum)
+                else alert(data.message||'Action failed')
+            } catch{alert('Connection error')}
         }
 
-        function showDoorScreen(message, instruction, doorNumber) {
-            document.getElementById('door-message').textContent = message
-            document.getElementById('door-instruction').textContent = instruction
+        function showDoorScreen(msg,inst,doorNum){
+            document.getElementById('door-message').textContent=msg
+            document.getElementById('door-instruction').textContent=inst
             showScreen('door-screen')
-
-            let seconds = 30
-            const timer = document.getElementById('door-timer')
-            const interval = setInterval(async () => {
-                seconds--
-                timer.textContent = `Auto-close in ${seconds}s`
-                try {
-                    const res = await fetch(API + '/door-states')
-                    const data = await res.json()
-                    if (data.states[doorNumber - 1]) { clearInterval(interval); showDoneScreen(); return }
-                } catch {}
-                if (seconds <= 0) { clearInterval(interval); showDoneScreen() }
-            }, 1000)
+            let sec=30; const t=document.getElementById('door-timer')
+            const iv=setInterval(async()=>{
+                sec--; t.textContent=`Auto-close in ${sec}s`
+                try{const r=await fetch(API+'/door-states');const d=await r.json();if(d.states[doorNum-1]){clearInterval(iv);showDoneScreen();return}}catch{}
+                if(sec<=0){clearInterval(iv);showDoneScreen()}
+            },1000)
         }
 
-        function showDoneScreen() {
-            const labels = { checkout: 'Key checked out', return: 'Key returned', place: 'Key placed', retrieve: 'Key retrieved' }
-            document.getElementById('done-message').textContent = labels[currentAction] || 'Done'
-            document.getElementById('done-details').innerHTML = `${currentUser.name}<br>${new Date().toLocaleTimeString()}`
-            showScreen('done-screen')
-            setTimeout(goHome, 5000)
+        function showDoneScreen(){
+            const lb={checkout:'Key checked out successfully',return:'Key returned successfully',place:'Key placed successfully',retrieve:'Key retrieved successfully'}
+            document.getElementById('done-message').textContent=lb[currentAction]||'Done'
+            document.getElementById('done-details').innerHTML=`${currentUser.name}<br>${new Date().toLocaleTimeString()}`
+            showScreen('done-screen'); setTimeout(goHome,5000)
         }
 
-        // ── Init ───────────────────────────────────
-        loadWelcomeStatus()
-        setInterval(loadWelcomeStatus, 5000)
+        loadWelcomeStatus(); setInterval(loadWelcomeStatus,5000)
     </script>
 </body>
 </html>
