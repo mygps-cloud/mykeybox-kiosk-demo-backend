@@ -30,9 +30,10 @@ function getDb() {
             label TEXT,
             vin TEXT,
             status TEXT NOT NULL DEFAULT 'empty',
+            code TEXT,
+            code_type TEXT,
             checked_out_by INTEGER,
-            checked_out_at TEXT,
-            FOREIGN KEY (checked_out_by) REFERENCES users(id)
+            checked_out_at TEXT
         );
 
         CREATE TABLE IF NOT EXISTS audit_log (
@@ -51,6 +52,18 @@ function getDb() {
             value TEXT
         );
     `)
+
+    // Migration: add code columns if missing (for existing DBs)
+    try { db.exec("ALTER TABLE key_slots ADD COLUMN code TEXT") } catch(e) {}
+    try { db.exec("ALTER TABLE key_slots ADD COLUMN code_type TEXT") } catch(e) {}
+
+    // Auto-create 4 doors if none exist
+    const doorCount = db.prepare('SELECT COUNT(*) as count FROM key_slots').get()
+    if (doorCount.count === 0) {
+        for (let i = 1; i <= 4; i++) {
+            db.prepare('INSERT OR IGNORE INTO key_slots (door_number, status) VALUES (?, ?)').run(i, 'empty')
+        }
+    }
 
     // Insert default settings if not exist
     const insertSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)')

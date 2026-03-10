@@ -4,184 +4,89 @@ const { getDb } = require('../db/setup')
 
 module.exports = function (driver) {
 
-    // Verify PIN → returns user info + available actions
-    router.post('/verify-pin', (req, res) => {
-        const { pin } = req.body
-        if (!pin) return res.json({ success: false, message: 'PIN required' })
+    // Check code — main kiosk endpoint
+    // D + code → place key (find empty door, assign code)
+    // C or S + same code → retrieve key (find door with that code)
+    router.post('/check-code', (req, res) => {
+        const { type, code } = req.body
+        if (!type || !code) return res.json({ success: false, message: 'Type and code required' })
+        if (!['C', 'S', 'D'].includes(type.toUpperCase()))
+            return res.json({ success: false, message: 'Invalid type. Use C, S, or D' })
+        if (code.length !== 5 || !/^\d{5}$/.test(code))
+            return res.json({ success: false, message: 'Code must be 5 digits' })
 
         const db = getDb()
-        const user = db.prepare('SELECT * FROM users WHERE pin = ? AND active = 1').get(pin)
+        const upperType = type.toUpperCase()
 
-        if (!user) return res.json({ success: false, message: 'Invalid PIN' })
+        if (upperType === 'D') {
+            // Dealer placing a key — code must NOT already exist
+            const existing = db.prepare("SELECT * FROM key_slots WHERE code = ? AND status = 'occupied'").get(code)
+            if (existing) {
+                return res.json({ success: false, message: 'Code already in use' })
+            }
 
-        // Count how many keys this user currently has out
-        const keysOut = db.prepare('SELECT COUNT(*) as count FROM key_slots WHERE checked_out_by = ?').get(user.id)
+            // Find first empty door
+            const emptySlot = db.prepare("SELECT * FROM key_slots WHERE status = 'empty' ORDER BY door_number LIMIT 1").get()
+            if (!emptySlot) {
+                return res.json({ success: false, message: 'No empty doors available' })
+            }
 
-        // Get available slots for checkout
-        const availableSlots = db.prepare("SELECT * FROM key_slots WHERE status = 'available'").all()
+            // Open the door
+            const opened = driver.openDoor(emptySlot.door_number - 1)
+            if (!opened) return res.json({ success: false, message: 'Failed to open door' })
 
-        // Get slots checked out by this user (for return)
-        const userSlots = db.prepare('SELECT * FROM key_slots WHERE checked_out_by = ?').all(user.id)
+            // Save code to this door
+            db.prepare("UPDATE key_slots SET status = 'occupied', code = ?, code_type = 'D', checked_out_at = datetime('now') WHERE id = ?")
+                .run(code, emptySlot.id)
 
-        // Get mode
-        const mode = db.prepare("SELECT value FROM settings WHERE key = 'mode'").get()
+            // Audit
+            db.prepare('INSERT INTO audit_log (user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?)')
+                .run(`Dealer (D)`, emptySlot.id, emptySlot.door_number, 'place_key', `Code: D-${code}`)
 
-        // Log access
-        db.prepare('INSERT INTO audit_log (user_id, user_name, action, details) VALUES (?, ?, ?, ?)')
-            .run(user.id, user.name, 'login', `PIN verified`)
+            console.log(`[KIOSK] D-${code} → Door ${emptySlot.door_number} PLACED`)
 
-        res.json({
-            success: true,
-            user: { id: user.id, name: user.name, role: user.role, max_keys: user.max_keys },
-            keys_out: keysOut.count,
-            available_slots: availableSlots,
-            user_slots: userSlots,
-            mode: mode?.value || 'internal'
-        })
+            res.json({
+                success: true,
+                action: 'place',
+                door_number: emptySlot.door_number,
+                message: `Door ${emptySlot.door_number} is open — place the key`
+            })
+
+        } else {
+            // Carrier (C) or Service (S) retrieving — code must exist
+            const slot = db.prepare("SELECT * FROM key_slots WHERE code = ? AND status = 'occupied'").get(code)
+            if (!slot) {
+                return res.json({ success: false, message: 'Code not found' })
+            }
+
+            // Open the door
+            const opened = driver.openDoor(slot.door_number - 1)
+            if (!opened) return res.json({ success: false, message: 'Failed to open door' })
+
+            // Clear the code — door becomes empty again
+            db.prepare("UPDATE key_slots SET status = 'empty', code = NULL, code_type = NULL, checked_out_by = NULL, checked_out_at = NULL WHERE id = ?")
+                .run(slot.id)
+
+            // Audit
+            db.prepare('INSERT INTO audit_log (user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?)')
+                .run(`${upperType === 'C' ? 'Carrier' : 'Service'} (${upperType})`, slot.id, slot.door_number, 'retrieve_key', `Code: ${upperType}-${code}`)
+
+            console.log(`[KIOSK] ${upperType}-${code} → Door ${slot.door_number} RETRIEVED`)
+
+            res.json({
+                success: true,
+                action: 'retrieve',
+                door_number: slot.door_number,
+                message: `Door ${slot.door_number} is open — take the key`
+            })
+        }
     })
 
-    // Get all slots with current status
+    // Get all slots with current status (for welcome screen boxes)
     router.get('/slots', (req, res) => {
         const db = getDb()
-        const slots = db.prepare(`
-            SELECT ks.*, u.name as checked_out_by_name
-            FROM key_slots ks
-            LEFT JOIN users u ON ks.checked_out_by = u.id
-            ORDER BY ks.door_number
-        `).all()
-
+        const slots = db.prepare('SELECT id, door_number, label, status, code FROM key_slots ORDER BY door_number').all()
         res.json({ slots })
-    })
-
-    // Checkout key — open door for user to take key
-    router.post('/checkout', (req, res) => {
-        const { user_id, slot_id } = req.body
-        const db = getDb()
-
-        const user = db.prepare('SELECT * FROM users WHERE id = ? AND active = 1').get(user_id)
-        if (!user) return res.json({ success: false, message: 'User not found' })
-
-        const slot = db.prepare('SELECT * FROM key_slots WHERE id = ?').get(slot_id)
-        if (!slot) return res.json({ success: false, message: 'Slot not found' })
-
-        if (slot.status !== 'available')
-            return res.json({ success: false, message: 'Key not available' })
-
-        // Check max keys
-        const keysOut = db.prepare('SELECT COUNT(*) as count FROM key_slots WHERE checked_out_by = ?').get(user.id)
-        if (keysOut.count >= user.max_keys)
-            return res.json({ success: false, message: `Maximum ${user.max_keys} keys allowed` })
-
-        // Open the door
-        const doorIdx = slot.door_number - 1
-        const opened = driver.openDoor(doorIdx)
-        if (!opened) return res.json({ success: false, message: 'Failed to open door' })
-
-        // Update slot status
-        db.prepare(`
-            UPDATE key_slots SET status = 'checked_out', checked_out_by = ?, checked_out_at = datetime('now')
-            WHERE id = ?
-        `).run(user.id, slot.id)
-
-        // Audit log
-        db.prepare('INSERT INTO audit_log (user_id, user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?, ?)')
-            .run(user.id, user.name, slot.id, slot.door_number, 'checkout', `Key: ${slot.label || 'Slot ' + slot.door_number}`)
-
-        console.log(`[KIOSK] ${user.name} checked out key from door ${slot.door_number} (${slot.label})`)
-
-        res.json({ success: true, door_number: slot.door_number, message: 'Door is open — take your key' })
-    })
-
-    // Return key — open door for user to place key back
-    router.post('/return', (req, res) => {
-        const { user_id, slot_id } = req.body
-        const db = getDb()
-
-        const user = db.prepare('SELECT * FROM users WHERE id = ? AND active = 1').get(user_id)
-        if (!user) return res.json({ success: false, message: 'User not found' })
-
-        const slot = db.prepare('SELECT * FROM key_slots WHERE id = ?').get(slot_id)
-        if (!slot) return res.json({ success: false, message: 'Slot not found' })
-
-        if (slot.status !== 'checked_out' || slot.checked_out_by !== user.id)
-            return res.json({ success: false, message: 'This key is not checked out by you' })
-
-        // Open the door
-        const doorIdx = slot.door_number - 1
-        const opened = driver.openDoor(doorIdx)
-        if (!opened) return res.json({ success: false, message: 'Failed to open door' })
-
-        // Update slot status
-        db.prepare("UPDATE key_slots SET status = 'available', checked_out_by = NULL, checked_out_at = NULL WHERE id = ?")
-            .run(slot.id)
-
-        // Audit log
-        db.prepare('INSERT INTO audit_log (user_id, user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?, ?)')
-            .run(user.id, user.name, slot.id, slot.door_number, 'return', `Key: ${slot.label || 'Slot ' + slot.door_number}`)
-
-        console.log(`[KIOSK] ${user.name} returned key to door ${slot.door_number} (${slot.label})`)
-
-        res.json({ success: true, door_number: slot.door_number, message: 'Door is open — place your key' })
-    })
-
-    // Handoff mode: Place key (dealer drops off)
-    router.post('/place-key', (req, res) => {
-        const { user_id, slot_id, recipient_info } = req.body
-        const db = getDb()
-
-        const user = db.prepare('SELECT * FROM users WHERE id = ? AND active = 1').get(user_id)
-        if (!user) return res.json({ success: false, message: 'User not found' })
-
-        const slot = db.prepare('SELECT * FROM key_slots WHERE id = ?').get(slot_id)
-        if (!slot) return res.json({ success: false, message: 'Slot not found' })
-
-        if (slot.status !== 'empty' && slot.status !== 'available')
-            return res.json({ success: false, message: 'Slot not available' })
-
-        // Open door
-        const doorIdx = slot.door_number - 1
-        const opened = driver.openDoor(doorIdx)
-        if (!opened) return res.json({ success: false, message: 'Failed to open door' })
-
-        // Update slot — mark as reserved for pickup
-        db.prepare("UPDATE key_slots SET status = 'reserved', checked_out_by = ?, checked_out_at = datetime('now') WHERE id = ?")
-            .run(user.id, slot.id)
-
-        // Audit log
-        db.prepare('INSERT INTO audit_log (user_id, user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?, ?)')
-            .run(user.id, user.name, slot.id, slot.door_number, 'place_key', `Placed by: ${user.name}. ${recipient_info || ''}`)
-
-        res.json({ success: true, door_number: slot.door_number, message: 'Door is open — place the key' })
-    })
-
-    // Handoff mode: Retrieve key (carrier picks up)
-    router.post('/retrieve-key', (req, res) => {
-        const { user_id, slot_id } = req.body
-        const db = getDb()
-
-        const user = db.prepare('SELECT * FROM users WHERE id = ? AND active = 1').get(user_id)
-        if (!user) return res.json({ success: false, message: 'User not found' })
-
-        const slot = db.prepare('SELECT * FROM key_slots WHERE id = ?').get(slot_id)
-        if (!slot) return res.json({ success: false, message: 'Slot not found' })
-
-        if (slot.status !== 'reserved')
-            return res.json({ success: false, message: 'No key waiting for pickup' })
-
-        // Open door
-        const doorIdx = slot.door_number - 1
-        const opened = driver.openDoor(doorIdx)
-        if (!opened) return res.json({ success: false, message: 'Failed to open door' })
-
-        // Update slot
-        db.prepare("UPDATE key_slots SET status = 'empty', checked_out_by = NULL, checked_out_at = NULL WHERE id = ?")
-            .run(slot.id)
-
-        // Audit log
-        db.prepare('INSERT INTO audit_log (user_id, user_name, key_slot_id, door_number, action, details) VALUES (?, ?, ?, ?, ?, ?)')
-            .run(user.id, user.name, slot.id, slot.door_number, 'retrieve_key', `Retrieved by: ${user.name}`)
-
-        res.json({ success: true, door_number: slot.door_number, message: 'Door is open — take the key' })
     })
 
     // Live door states from hardware
@@ -189,6 +94,23 @@ module.exports = function (driver) {
         res.json({
             states: driver.getDoorStates(),
             connected: driver.isConnected()
+        })
+    })
+
+    // Legacy: verify-pin (kept for admin panel compatibility)
+    router.post('/verify-pin', (req, res) => {
+        const { pin } = req.body
+        if (!pin) return res.json({ success: false, message: 'PIN required' })
+
+        const db = getDb()
+        const user = db.prepare('SELECT * FROM users WHERE pin = ? AND active = 1').get(pin)
+        if (!user) return res.json({ success: false, message: 'Invalid PIN' })
+
+        const mode = db.prepare("SELECT value FROM settings WHERE key = 'mode'").get()
+        res.json({
+            success: true,
+            user: { id: user.id, name: user.name, role: user.role, max_keys: user.max_keys },
+            mode: mode?.value || 'internal'
         })
     })
 

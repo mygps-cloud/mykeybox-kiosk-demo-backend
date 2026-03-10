@@ -107,13 +107,7 @@ module.exports = function (driver) {
 
     router.get('/slots', (req, res) => {
         const db = getDb()
-        const slots = db.prepare(`
-            SELECT ks.*, u.name as checked_out_by_name
-            FROM key_slots ks
-            LEFT JOIN users u ON ks.checked_out_by = u.id
-            ORDER BY ks.door_number
-        `).all()
-
+        const slots = db.prepare('SELECT * FROM key_slots ORDER BY door_number').all()
         res.json({ slots, door_states: driver.getDoorStates(), connected: driver.isConnected() })
     })
 
@@ -222,16 +216,16 @@ module.exports = function (driver) {
 
     // ── RESET ──────────────────────────────────────────
 
-    // Reset all checkouts (for demo reset)
+    // Reset all doors (clear all codes, make empty)
     router.post('/reset-checkouts', (req, res) => {
         const db = getDb()
-        db.prepare("UPDATE key_slots SET status = CASE WHEN label IS NOT NULL THEN 'available' ELSE 'empty' END, checked_out_by = NULL, checked_out_at = NULL WHERE status IN ('checked_out', 'reserved')")
+        db.prepare("UPDATE key_slots SET status = 'empty', code = NULL, code_type = NULL, checked_out_by = NULL, checked_out_at = NULL")
             .run()
 
         db.prepare("INSERT INTO audit_log (user_name, action, details) VALUES (?, ?, ?)")
-            .run('Admin', 'reset', 'All checkouts reset')
+            .run('Admin', 'reset', 'All doors reset to empty')
 
-        res.json({ success: true, message: 'All checkouts reset' })
+        res.json({ success: true, message: 'All doors reset' })
     })
 
     // Full factory reset
@@ -250,17 +244,12 @@ module.exports = function (driver) {
     router.get('/dashboard', (req, res) => {
         const db = getDb()
 
-        const slots = db.prepare(`
-            SELECT ks.*, u.name as checked_out_by_name
-            FROM key_slots ks
-            LEFT JOIN users u ON ks.checked_out_by = u.id
-            ORDER BY ks.door_number
-        `).all()
+        const slots = db.prepare('SELECT * FROM key_slots ORDER BY door_number').all()
 
         const recentActivity = db.prepare('SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 20').all()
         const userCount = db.prepare('SELECT COUNT(*) as count FROM users WHERE active = 1').get()
-        const keysOut = db.prepare("SELECT COUNT(*) as count FROM key_slots WHERE status = 'checked_out'").get()
-        const keysAvailable = db.prepare("SELECT COUNT(*) as count FROM key_slots WHERE status = 'available'").get()
+        const keysOccupied = db.prepare("SELECT COUNT(*) as count FROM key_slots WHERE status = 'occupied'").get()
+        const keysEmpty = db.prepare("SELECT COUNT(*) as count FROM key_slots WHERE status = 'empty'").get()
         const settings = {}
         db.prepare('SELECT * FROM settings').all().forEach(r => settings[r.key] = r.value)
 
@@ -271,8 +260,8 @@ module.exports = function (driver) {
             recent_activity: recentActivity,
             stats: {
                 total_users: userCount.count,
-                keys_out: keysOut.count,
-                keys_available: keysAvailable.count
+                keys_occupied: keysOccupied.count,
+                doors_empty: keysEmpty.count
             },
             settings
         })
