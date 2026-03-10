@@ -274,18 +274,19 @@
         let selectedCar = null, searchText = '', oskVisible = false
         let inactivityTimer = null, doorInterval = null
 
-        // ── Car SVG icon (colored silhouette) ──
-        function carSVG(hex, w=56, h=40) {
-            return `<svg width="${w}" height="${h}" viewBox="0 0 56 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 28h40v4a2 2 0 01-2 2h-2a4 4 0 01-8 0H20a4 4 0 01-8 0h-2a2 2 0 01-2-2v-4z" fill="${hex}" opacity="0.7"/>
-                <path d="M10 28V18a2 2 0 012-2h4l4-6h16l4 6h4a2 2 0 012 2v10H10z" fill="${hex}"/>
-                <rect x="16" y="13" width="10" height="7" rx="1" fill="rgba(255,255,255,0.3)"/>
-                <rect x="30" y="13" width="10" height="7" rx="1" fill="rgba(255,255,255,0.3)"/>
-                <circle cx="16" cy="34" r="3" fill="${hex}" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
-                <circle cx="40" cy="34" r="3" fill="${hex}" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
-                <rect x="6" y="22" width="6" height="3" rx="1" fill="${hex}" opacity="0.8"/>
-                <rect x="44" y="22" width="6" height="3" rx="1" fill="${hex}" opacity="0.8"/>
-            </svg>`
+        // ── Car image icon (real photos) ──
+        const CAR_IMAGES = {
+            1: 'toyota_camry.png', 2: 'honda_accord.png', 3: 'ford_f150.png',
+            4: 'chevrolet_silverado.png', 5: 'bmw_x5.png', 6: 'mercedes_c300.png',
+            7: 'tesla_model3.png', 8: 'toyota_rav4.png', 9: 'honda_crv.png',
+            10: 'ford_mustang.png', 11: 'hyundai_tucson.png', 12: 'kia_telluride.png',
+            13: 'nissan_altima.png', 14: 'jeep_grandcherokee.png', 15: 'subaru_outback.png',
+            16: 'audi_q5.png', 17: 'lexus_rx350.png', 18: 'volkswagen_atlas.png',
+            19: 'mazda_cx5.png', 20: 'dodge_charger.png'
+        }
+        function carImg(id, w=56, h=40) {
+            const src = CAR_IMAGES[id] || 'toyota_camry.png'
+            return `<img src="assets/image/cars/${src}" alt="" style="width:${w}px;height:${h}px;object-fit:contain;">`
         }
 
         // ── 20 Hardcoded Cars ──
@@ -400,7 +401,7 @@
             const filtered = CARS.filter(c => !f || c.vin.toLowerCase().includes(f) || c.brand.toLowerCase().includes(f) || c.model.toLowerCase().includes(f) || c.color.toLowerCase().includes(f) || String(c.year).includes(f))
             list.innerHTML = filtered.map(c => `
                 <div class="car-card" onclick="selectCar(${c.id})">
-                    <div class="car-icon">${carSVG(c.hex)}</div>
+                    <div class="car-icon">${carImg(c.id)}</div>
                     <div class="car-info">
                         <div class="car-name">${c.year} ${c.brand} ${c.model}</div>
                         <div class="car-vin">${c.vin}</div>
@@ -415,7 +416,7 @@
             selectedCar = CARS.find(c => c.id === id)
             if (!selectedCar) return
             // Show confirmation screen
-            document.getElementById('confirm-car-icon').innerHTML = carSVG(selectedCar.hex, 100, 72)
+            document.getElementById('confirm-car-icon').innerHTML = carImg(selectedCar.id, 160, 100)
             document.getElementById('confirm-car-name').textContent = `${selectedCar.year} ${selectedCar.brand} ${selectedCar.model}`
             document.getElementById('confirm-car-vin').textContent = selectedCar.vin
             document.getElementById('confirm-car-color').innerHTML = `<span class="confirm-color-dot" style="background:${selectedCar.hex}"></span> ${selectedCar.color}`

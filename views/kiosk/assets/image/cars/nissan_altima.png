@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="https://pngimg.com/distr/css/css.css"/>
+    <title>404 Error. Not found.</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="name" content="PngImg.com"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <script async custom-element="amp-auto-ads"
+            src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+<body>
+<amp-auto-ads type="adsense"
+              data-ad-client="ca-pub-0593512396584361">
+</amp-auto-ads>
+<div class="row bottom_border">
+    <div class="large-10 small-8 columns">
+        Language: <b>English</b> | <a href="https://pngimg.es">España</a>
+    </div>
+    <div class="large-2 small-4 columns" style="text-align: right;">
+        <a href="https://www.paypal.com/donate/?hosted_button_id=H269GXHKMEZBG" target="_blank"><img
+                    src="/distr/img/btn_donate_lg.gif" border="0" alt="Donate"/></a>
+    </div>
+</div>
+<div class="row top-logo">
+    <div class="large-3 logo_div columns">
+        <a href="/" class="none"><span class="logo"><span class="logo_title">pngimg</span>.com</span></a>
+        <h1>PNG images and cliparts for web design</h1>
+    </div>
+    <div class="large-9 columns search-block">
+    </div>
+</div>
+<div class="row">
+    <div class="large-12 columns search_form_div">
+        <form itemprop="potentialAction" itemscope itemtype="http://schema.org/SearchAction" method="get" action="https://pngimg.com/search_image/">
+            <meta itemprop="target" content="https://pngimg.com/search_image/?search_image={search_image}" />
+            <div class="row collapse search_form">
+                <div class="large-11 small-9 columns">
+                    <input type="text" itemprop="query-input" name="search_image" value="" placeholder="Find PNG images..."/>
+                </div>
+                <div class="large-1 small-3 columns">
+                    <input type="submit" name="search_button" value="Search"/>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="large-12 columns main_content">
+        <a href="//pngimg.com">Home</a> &raquo; <a href="//pngimg.com//"></a> &raquo; <a href="//pngimg.com/"></a> Error        <center><font color='red'><b>Error. <br/>Sorry, there is no such page!</b></font><br/><br/><a href="https://pngimg.com">Go to main page</a></center> <br/><br/>    </div>
+</div>
+
+<div class="row">
+    <div class="large-12 columns">
+        <div class="footer_menu"><a href="/about">About</a> &nbsp; | &nbsp; <a href="/license">License</a> &nbsp; |
+            &nbsp; <a href="https://pngimg.com/cookie.html" target="_blank">Cookie consent</a> &nbsp; | &nbsp; <a
+                    href="/contacts">Contacts</a></div>
+    </div>
+    <div class="large-9 columns copyright">
+        <span class="small_logo"><span class="small_logo_title">pngimg</span>.com</span> Copyright &copy; 2013
+        - 2026. Free PNG images, pictures and cliparts for design and web design
+        <div style="padding-top:7px;">
+            <a href="https://www.facebook.com/pngimg" rel="nofollow" target="_blank"><img src="/distr/img/fb.jpg"
+                                                                                          border="0" alt="Facebook"
+                                                                                          title="Facebook"/></a> &nbsp;
+            <a href="https://twitter.com/PngImgCom" rel="nofollow" target="_blank"><img src="/distr/img/twitter.jpg"
+                                                                                        border="0" alt="Twitter"
+                                                                                        title="Twitter"/></a> &nbsp;
+            <!-- <a href="#" rel="nofollow" target="_blank"><img
+                        src="/distr/img/instagram.jpg" border="0" alt="Instagram" title="Instagram"/></a> &nbsp;-->
+        </div>
+    </div>
+    <div class="large-3 columns copyright text-right">
+        <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9TJPV0DEQB"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-9TJPV0DEQB');
+</script>    </div>
+</div>
+</body>
+</html>
