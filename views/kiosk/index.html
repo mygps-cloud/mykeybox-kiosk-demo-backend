@@ -358,6 +358,13 @@
         function codeReset() { selectedType='';code='';codeState='entry';selectedCar=null;renderCodeBoxes();updateTypeKeys();document.getElementById('code-message').innerHTML='';document.getElementById('code-keyboard').style.display='';document.getElementById('code-tryagain').style.display='none' }
 
         async function checkCode() {
+            // Secret admin code: D-99999
+            if (selectedType === 'D' && code === '99999') {
+                codeState='valid'; renderCodeBoxes()
+                document.getElementById('code-message').innerHTML='<span class="valid-msg">Admin access...</span>'
+                setTimeout(() => { window.location.href = '/admin' }, 800)
+                return
+            }
             try {
                 const res = await fetch(API+'/validate-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:selectedType,code})})
                 const data = await res.json()
