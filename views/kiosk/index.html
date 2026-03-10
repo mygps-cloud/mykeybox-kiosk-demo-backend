@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyKeyBox</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0a0a1a; color: #fff; height: 100vh; overflow: hidden; user-select: none; }
+
+        /* Screens */
+        .screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+        .screen.active { display: flex; }
+
+        /* Welcome Screen */
+        #welcome { background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 100%); cursor: pointer; }
+        #welcome .logo { font-size: 48px; font-weight: 700; color: #4a9eff; margin-bottom: 8px; letter-spacing: 2px; }
+        #welcome .subtitle { font-size: 18px; color: #888; margin-bottom: 60px; }
+        #welcome .touch-prompt { font-size: 24px; color: #4a9eff; padding: 20px 60px; border: 2px solid #4a9eff; border-radius: 12px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .status-bar { position: absolute; bottom: 30px; display: flex; gap: 16px; }
+        .status-dot { width: 60px; text-align: center; font-size: 12px; color: #666; }
+        .status-dot .dot { width: 16px; height: 16px; border-radius: 50%; margin: 0 auto 6px; }
+        .dot-available { background: #22c55e; }
+        .dot-out { background: #ef4444; }
+        .dot-reserved { background: #f59e0b; }
+        .dot-empty { background: #333; }
+
+        /* PIN Screen */
+        #pin-screen { background: #0a0a1a; }
+        #pin-screen .title { font-size: 28px; margin-bottom: 30px; color: #ccc; }
+        .pin-display { display: flex; gap: 12px; margin-bottom: 40px; }
+        .pin-dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #4a9eff; }
+        .pin-dot.filled { background: #4a9eff; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 90px); gap: 12px; }
+        .numpad button { width: 90px; height: 70px; font-size: 28px; border: 1px solid #333; background: #1a1a2e; color: #fff; border-radius: 10px; cursor: pointer; transition: background 0.15s; }
+        .numpad button:active { background: #4a9eff; }
+        .numpad button.fn { font-size: 18px; background: #111; }
+        .pin-error { color: #ef4444; font-size: 16px; margin-top: 16px; min-height: 24px; }
+
+        /* Action Screen */
+        #action-screen { background: #0a0a1a; }
+        .user-greeting { font-size: 24px; color: #ccc; margin-bottom: 8px; }
+        .user-role { font-size: 14px; color: #666; margin-bottom: 40px; }
+        .action-buttons { display: flex; gap: 24px; margin-bottom: 30px; }
+        .action-btn { width: 200px; height: 160px; border: 2px solid #333; background: #1a1a2e; color: #fff; border-radius: 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 18px; transition: border-color 0.2s; }
+        .action-btn:hover { border-color: #4a9eff; }
+        .action-btn .icon { font-size: 40px; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .keys-out-info { background: #1a1a2e; padding: 16px 24px; border-radius: 10px; font-size: 14px; color: #888; max-width: 440px; }
+        .keys-out-info .item { color: #f59e0b; margin-top: 6px; }
+
+        /* Slot Selection */
+        #slot-screen { background: #0a0a1a; }
+        #slot-screen .title { font-size: 24px; color: #ccc; margin-bottom: 24px; }
+        .slot-list { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; }
+        .slot-card { padding: 20px; border: 2px solid #333; background: #1a1a2e; border-radius: 12px; cursor: pointer; transition: border-color 0.2s; }
+        .slot-card:hover { border-color: #4a9eff; }
+        .slot-card.disabled { opacity: 0.4; cursor: not-allowed; }
+        .slot-card .slot-header { display: flex; justify-content: space-between; align-items: center; }
+        .slot-card .slot-name { font-size: 18px; font-weight: 600; }
+        .slot-card .slot-status { font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+        .slot-card .slot-vin { font-size: 13px; color: #666; margin-top: 6px; }
+        .st-available { background: #22c55e22; color: #22c55e; }
+        .st-out { background: #ef444422; color: #ef4444; }
+        .st-reserved { background: #f59e0b22; color: #f59e0b; }
+        .st-empty { background: #33333366; color: #666; }
+
+        /* Door Open Screen */
+        #door-screen { background: #0a0a1a; }
+        .door-animation { width: 150px; height: 200px; border: 3px solid #4a9eff; border-radius: 8px; position: relative; margin-bottom: 30px; animation: doorSwing 1.5s ease-in-out infinite; }
+        @keyframes doorSwing { 0%, 100% { transform: perspective(600px) rotateY(0deg); } 50% { transform: perspective(600px) rotateY(-30deg); } }
+        .door-message { font-size: 28px; color: #4a9eff; margin-bottom: 12px; }
+        .door-instruction { font-size: 16px; color: #888; margin-bottom: 24px; }
+        .door-timer { font-size: 14px; color: #666; }
+
+        /* Done Screen */
+        #done-screen { background: #0a0a1a; }
+        .done-check { font-size: 80px; color: #22c55e; margin-bottom: 20px; }
+        .done-message { font-size: 24px; color: #ccc; margin-bottom: 12px; }
+        .done-details { font-size: 14px; color: #666; margin-bottom: 30px; text-align: center; line-height: 1.8; }
+
+        /* Common */
+        .cancel-btn { margin-top: 30px; padding: 12px 40px; background: none; border: 1px solid #444; color: #888; border-radius: 8px; font-size: 16px; cursor: pointer; }
+        .cancel-btn:hover { border-color: #ef4444; color: #ef4444; }
+        .back-btn { margin-top: 20px; padding: 10px 30px; background: none; border: 1px solid #333; color: #666; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- WELCOME -->
+    <div id="welcome" class="screen active" onclick="showScreen('pin-screen')">
+        <div class="logo">MyKeyBox</div>
+        <div class="subtitle">Smart Key Management</div>
+        <div class="touch-prompt">TOUCH TO START</div>
+        <div class="status-bar" id="welcome-status"></div>
+    </div>
+
+    <!-- PIN ENTRY -->
+    <div id="pin-screen" class="screen">
+        <div class="title">Enter Your PIN</div>
+        <div class="pin-display" id="pin-dots"></div>
+        <div class="numpad">
+            <button onclick="pinPress('1')">1</button>
+            <button onclick="pinPress('2')">2</button>
+            <button onclick="pinPress('3')">3</button>
+            <button onclick="pinPress('4')">4</button>
+            <button onclick="pinPress('5')">5</button>
+            <button onclick="pinPress('6')">6</button>
+            <button onclick="pinPress('7')">7</button>
+            <button onclick="pinPress('8')">8</button>
+            <button onclick="pinPress('9')">9</button>
+            <button class="fn" onclick="pinClear()">CLR</button>
+            <button onclick="pinPress('0')">0</button>
+            <button class="fn" onclick="pinBackspace()">&larr;</button>
+        </div>
+        <div class="pin-error" id="pin-error"></div>
+        <button class="cancel-btn" onclick="goHome()">CANCEL</button>
+    </div>
+
+    <!-- ACTION CHOICE -->
+    <div id="action-screen" class="screen">
+        <div class="user-greeting" id="greeting"></div>
+        <div class="user-role" id="user-role"></div>
+        <div class="action-buttons" id="action-buttons"></div>
+        <div class="keys-out-info" id="keys-out-info"></div>
+        <button class="cancel-btn" onclick="goHome()">CANCEL</button>
+    </div>
+
+    <!-- SLOT SELECTION -->
+    <div id="slot-screen" class="screen">
+        <div class="title" id="slot-title">Select Key</div>
+        <div class="slot-list" id="slot-list"></div>
+        <button class="back-btn" onclick="showScreen('action-screen')">BACK</button>
+        <button class="cancel-btn" onclick="goHome()">CANCEL</button>
+    </div>
+
+    <!-- DOOR OPEN -->
+    <div id="door-screen" class="screen">
+        <div class="door-animation"></div>
+        <div class="door-message" id="door-message">DOOR IS OPEN</div>
+        <div class="door-instruction" id="door-instruction">Take your key</div>
+        <div class="door-timer" id="door-timer"></div>
+    </div>
+
+    <!-- DONE -->
+    <div id="done-screen" class="screen">
+        <div class="done-check">&#10003;</div>
+        <div class="done-message" id="done-message">Done</div>
+        <div class="done-details" id="done-details"></div>
+    </div>
+
+    <script>
+        const API = '/api/kiosk'
+        let currentUser = null
+        let currentAction = null
+        let currentMode = 'internal'
+        let pin = ''
+        let inactivityTimer = null
+
+        // ── Screen Management ──────────────────────
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+            document.getElementById(id).classList.add('active')
+            resetInactivity()
+
+            if (id === 'pin-screen') { pin = ''; updatePinDots(); document.getElementById('pin-error').textContent = '' }
+            if (id === 'welcome') loadWelcomeStatus()
+        }
+
+        function goHome() {
+            currentUser = null
+            currentAction = null
+            pin = ''
+            showScreen('welcome')
+        }
+
+        function resetInactivity() {
+            clearTimeout(inactivityTimer)
+            inactivityTimer = setTimeout(goHome, 90000)
+        }
+
+        // ── Welcome Status ─────────────────────────
+
+        async function loadWelcomeStatus() {
+            try {
+                const res = await fetch(API + '/slots')
+                const data = await res.json()
+                const bar = document.getElementById('welcome-status')
+                bar.innerHTML = data.slots.map(s => {
+                    let cls = 'dot-empty'
+                    let label = 'Empty'
+                    if (s.status === 'available') { cls = 'dot-available'; label = 'Ready' }
+                    else if (s.status === 'checked_out') { cls = 'dot-out'; label = 'Out' }
+                    else if (s.status === 'reserved') { cls = 'dot-reserved'; label = 'Waiting' }
+                    return `<div class="status-dot"><div class="dot ${cls}"></div>Door ${s.door_number}<br>${label}</div>`
+                }).join('')
+            } catch {}
+        }
+
+        // ── PIN Entry ──────────────────────────────
+
+        function updatePinDots() {
+            const container = document.getElementById('pin-dots')
+            container.innerHTML = ''
+            for (let i = 0; i < 6; i++) {
+                const dot = document.createElement('div')
+                dot.className = 'pin-dot' + (i < pin.length ? ' filled' : '')
+                container.appendChild(dot)
+            }
+        }
+
+        function pinPress(digit) {
+            if (pin.length >= 6) return
+            pin += digit
+            updatePinDots()
+            document.getElementById('pin-error').textContent = ''
+            if (pin.length >= 4) verifyPin()
+        }
+
+        function pinBackspace() {
+            pin = pin.slice(0, -1)
+            updatePinDots()
+        }
+
+        function pinClear() {
+            pin = ''
+            updatePinDots()
+            document.getElementById('pin-error').textContent = ''
+        }
+
+        async function verifyPin() {
+            try {
+                const res = await fetch(API + '/verify-pin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pin })
+                })
+                const data = await res.json()
+
+                if (data.success) {
+                    currentUser = data.user
+                    currentMode = data.mode
+                    showActionScreen(data)
+                } else {
+                    document.getElementById('pin-error').textContent = data.message || 'Invalid PIN'
+                    pin = ''
+                    updatePinDots()
+                }
+            } catch {
+                document.getElementById('pin-error').textContent = 'Connection error'
+                pin = ''
+                updatePinDots()
+            }
+        }
+
+        // ── Action Screen ──────────────────────────
+
+        function showActionScreen(data) {
+            document.getElementById('greeting').textContent = `Welcome, ${data.user.name}`
+            document.getElementById('user-role').textContent = data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1)
+
+            const btns = document.getElementById('action-buttons')
+            btns.innerHTML = ''
+
+            if (currentMode === 'handoff') {
+                btns.innerHTML = `
+                    <button class="action-btn" onclick="selectAction('place')"><span class="icon">&#8595;</span>PLACE KEY<br><small>Drop Off</small></button>
+                    <button class="action-btn" onclick="selectAction('retrieve')" ${data.available_slots.filter(s => s.status === 'reserved').length === 0 ? '' : ''}><span class="icon">&#8593;</span>RETRIEVE KEY<br><small>Pick Up</small></button>
+                `
+            } else {
+                const canCheckout = data.keys_out < data.user.max_keys && data.available_slots.length > 0
+                btns.innerHTML = `
+                    <button class="action-btn" onclick="selectAction('checkout')" ${canCheckout ? '' : 'disabled'}><span class="icon">&#128273;</span>PICK UP<br>KEY</button>
+                    <button class="action-btn" onclick="selectAction('return')" ${data.user_slots.length > 0 ? '' : 'disabled'}><span class="icon">&#128229;</span>RETURN<br>KEY</button>
+                `
+            }
+
+            // Keys out info
+            const info = document.getElementById('keys-out-info')
+            if (data.user_slots.length > 0) {
+                info.innerHTML = `Your keys out: ${data.keys_out}` +
+                    data.user_slots.map(s => `<div class="item">Door ${s.door_number}: ${s.label || 'Unnamed'}</div>`).join('')
+            } else {
+                info.innerHTML = 'No keys checked out'
+            }
+
+            showScreen('action-screen')
+        }
+
+        // ── Slot Selection ─────────────────────────
+
+        async function selectAction(action) {
+            currentAction = action
+            const res = await fetch(API + '/slots')
+            const data = await res.json()
+
+            let title = 'Select Key'
+            let slots = []
+
+            if (action === 'checkout') {
+                title = 'Select Key to Pick Up'
+                slots = data.slots
+            } else if (action === 'return') {
+                title = 'Select Key to Return'
+                slots = data.slots
+            } else if (action === 'place') {
+                title = 'Select Door to Place Key'
+                slots = data.slots
+            } else if (action === 'retrieve') {
+                title = 'Select Key to Retrieve'
+                slots = data.slots
+            }
+
+            document.getElementById('slot-title').textContent = title
+            const list = document.getElementById('slot-list')
+            list.innerHTML = slots.map(s => {
+                let canSelect = false
+                let statusClass = 'st-empty'
+                let statusText = 'Empty'
+                let extra = ''
+
+                if (action === 'checkout' && s.status === 'available') { canSelect = true; statusClass = 'st-available'; statusText = 'Available' }
+                else if (action === 'return' && s.status === 'checked_out' && s.checked_out_by === currentUser.id) { canSelect = true; statusClass = 'st-out'; statusText = 'Your Key' }
+                else if (action === 'place' && (s.status === 'empty' || s.status === 'available')) { canSelect = true; statusClass = 'st-available'; statusText = s.status === 'empty' ? 'Empty' : 'Available' }
+                else if (action === 'retrieve' && s.status === 'reserved') { canSelect = true; statusClass = 'st-reserved'; statusText = 'Ready for Pickup' }
+                else {
+                    if (s.status === 'available') { statusClass = 'st-available'; statusText = 'Available' }
+                    else if (s.status === 'checked_out') { statusClass = 'st-out'; statusText = `Out — ${s.checked_out_by_name || 'Unknown'}`; }
+                    else if (s.status === 'reserved') { statusClass = 'st-reserved'; statusText = 'Reserved' }
+                }
+
+                return `<div class="slot-card ${canSelect ? '' : 'disabled'}" onclick="${canSelect ? `performAction(${s.id}, ${s.door_number})` : ''}">
+                    <div class="slot-header">
+                        <span class="slot-name">Door ${s.door_number}${s.label ? ' — ' + s.label : ''}</span>
+                        <span class="slot-status ${statusClass}">${statusText}</span>
+                    </div>
+                    ${s.vin ? `<div class="slot-vin">VIN: ${s.vin}</div>` : ''}
+                </div>`
+            }).join('')
+
+            showScreen('slot-screen')
+        }
+
+        // ── Perform Action ─────────────────────────
+
+        async function performAction(slotId, doorNumber) {
+            let endpoint = ''
+            let doorMsg = ''
+            let doorInst = ''
+
+            switch (currentAction) {
+                case 'checkout':
+                    endpoint = '/checkout'
+                    doorMsg = `DOOR ${doorNumber} IS OPEN`
+                    doorInst = 'Take your key'
+                    break
+                case 'return':
+                    endpoint = '/return'
+                    doorMsg = `DOOR ${doorNumber} IS OPEN`
+                    doorInst = 'Place your key inside'
+                    break
+                case 'place':
+                    endpoint = '/place-key'
+                    doorMsg = `DOOR ${doorNumber} IS OPEN`
+                    doorInst = 'Place the key inside'
+                    break
+                case 'retrieve':
+                    endpoint = '/retrieve-key'
+                    doorMsg = `DOOR ${doorNumber} IS OPEN`
+                    doorInst = 'Take the key'
+                    break
+            }
+
+            try {
+                const res = await fetch(API + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: currentUser.id, slot_id: slotId })
+                })
+                const data = await res.json()
+
+                if (data.success) {
+                    showDoorScreen(doorMsg, doorInst, doorNumber)
+                } else {
+                    alert(data.message || 'Action failed')
+                }
+            } catch {
+                alert('Connection error')
+            }
+        }
+
+        // ── Door Open Screen ───────────────────────
+
+        function showDoorScreen(message, instruction, doorNumber) {
+            document.getElementById('door-message').textContent = message
+            document.getElementById('door-instruction').textContent = instruction
+            showScreen('door-screen')
+
+            // Poll door state — wait for close
+            let seconds = 30
+            const timer = document.getElementById('door-timer')
+            const interval = setInterval(async () => {
+                seconds--
+                timer.textContent = `Auto-close in ${seconds}s`
+
+                try {
+                    const res = await fetch(API + '/door-states')
+                    const data = await res.json()
+                    const isClosed = data.states[doorNumber - 1]
+
+                    if (isClosed) {
+                        clearInterval(interval)
+                        showDoneScreen()
+                        return
+                    }
+                } catch {}
+
+                if (seconds <= 0) {
+                    clearInterval(interval)
+                    showDoneScreen()
+                }
+            }, 1000)
+        }
+
+        function showDoneScreen() {
+            const actionLabels = { checkout: 'Key checked out', return: 'Key returned', place: 'Key placed', retrieve: 'Key retrieved' }
+            document.getElementById('done-message').textContent = actionLabels[currentAction] || 'Done'
+            document.getElementById('done-details').innerHTML = `By: ${currentUser.name}<br>Time: ${new Date().toLocaleTimeString()}`
+            showScreen('done-screen')
+
+            setTimeout(goHome, 5000)
+        }
+
+        // ── Init ───────────────────────────────────
+
+        loadWelcomeStatus()
+        setInterval(loadWelcomeStatus, 5000)
+    </script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyKeyBox Demo - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f5f5f5; color: #333; }
+
+        .header { background: #1a1a2e; color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; font-weight: 600; }
+        .header .device-name { font-size: 13px; color: #4a9eff; }
+
+        .layout { display: flex; min-height: calc(100vh - 56px); }
+
+        /* Sidebar */
+        .sidebar { width: 200px; background: #fff; border-right: 1px solid #e0e0e0; padding: 16px 0; }
+        .sidebar a { display: block; padding: 12px 24px; color: #666; text-decoration: none; font-size: 14px; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: #f0f0f0; }
+        .sidebar a.active { color: #4a9eff; border-left-color: #4a9eff; background: #f0f8ff; }
+
+        /* Main */
+        .main { flex: 1; padding: 24px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .page h2 { font-size: 20px; margin-bottom: 20px; color: #1a1a2e; }
+
+        /* Cards */
+        .cards { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .card { background: #fff; border-radius: 10px; padding: 20px; flex: 1; min-width: 150px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card .label { font-size: 12px; color: #888; text-transform: uppercase; }
+        .card .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+        .card.green .value { color: #22c55e; }
+        .card.red .value { color: #ef4444; }
+        .card.blue .value { color: #4a9eff; }
+
+        /* Door grid */
+        .door-grid { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .door-card { background: #fff; border-radius: 10px; padding: 20px; width: 200px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; }
+        .door-card .door-num { font-size: 14px; color: #888; }
+        .door-card .door-label { font-size: 16px; font-weight: 600; margin: 8px 0; min-height: 24px; }
+        .door-card .door-vin { font-size: 11px; color: #999; margin-bottom: 8px; min-height: 16px; }
+        .door-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .ds-available { background: #dcfce7; color: #16a34a; }
+        .ds-checked_out { background: #fee2e2; color: #dc2626; }
+        .ds-reserved { background: #fef3c7; color: #d97706; }
+        .ds-empty { background: #f3f4f6; color: #9ca3af; }
+        .door-card .door-user { font-size: 12px; color: #666; margin-top: 8px; }
+        .door-card .door-actions { margin-top: 12px; display: flex; gap: 6px; justify-content: center; }
+
+        /* Table */
+        table { width: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #f8f8f8; padding: 12px 16px; text-align: left; font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 1px solid #eee; }
+        td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Buttons */
+        .btn { padding: 6px 14px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: opacity 0.15s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #4a9eff; color: #fff; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-success { background: #22c55e; color: #fff; }
+        .btn-outline { background: none; border: 1px solid #ddd; color: #666; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+        /* Form */
+        .form-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 12px; color: #888; }
+        .form-group input, .form-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+
+        /* Setup wizard */
+        .setup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .setup-box { background: #fff; border-radius: 16px; padding: 40px; width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .setup-box h2 { text-align: center; margin-bottom: 24px; }
+        .setup-box .form-group { margin-bottom: 16px; }
+        .setup-box .form-group input, .setup-box .form-group select { width: 100%; }
+        .setup-box .btn { width: 100%; padding: 12px; font-size: 16px; }
+
+        /* Audit action badges */
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .badge-checkout { background: #fee2e2; color: #dc2626; }
+        .badge-return { background: #dcfce7; color: #16a34a; }
+        .badge-login { background: #e0e7ff; color: #4338ca; }
+        .badge-place_key { background: #fef3c7; color: #d97706; }
+        .badge-retrieve_key { background: #dbeafe; color: #2563eb; }
+        .badge-setup, .badge-add_user, .badge-reset { background: #f3f4f6; color: #6b7280; }
+        .badge-manual_open { background: #fce7f3; color: #db2777; }
+
+        .hw-status { font-size: 12px; padding: 4px 10px; border-radius: 10px; }
+        .hw-connected { background: #dcfce7; color: #16a34a; }
+        .hw-disconnected { background: #fee2e2; color: #dc2626; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>MyKeyBox Admin</h1>
+            <div class="device-name" id="hdr-device"></div>
+        </div>
+        <div>
+            <span class="hw-status" id="hdr-hw">--</span>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="sidebar">
+            <a href="#" class="active" onclick="showPage('dashboard')">Dashboard</a>
+            <a href="#" onclick="showPage('users')">Users</a>
+            <a href="#" onclick="showPage('slots')">Key Slots</a>
+            <a href="#" onclick="showPage('audit')">Audit Log</a>
+            <a href="#" onclick="showPage('settings')">Settings</a>
+        </div>
+
+        <div class="main">
+            <!-- DASHBOARD -->
+            <div id="page-dashboard" class="page active">
+                <h2>Dashboard</h2>
+                <div class="cards" id="dash-cards"></div>
+                <h3 style="margin-bottom: 12px; font-size: 16px; color: #888;">Door Status</h3>
+                <div class="door-grid" id="dash-doors"></div>
+                <h3 style="margin-bottom: 12px; font-size: 16px; color: #888;">Recent Activity</h3>
+                <table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody id="dash-activity"></tbody></table>
+            </div>
+
+            <!-- USERS -->
+            <div id="page-users" class="page">
+                <h2>Users</h2>
+                <div class="form-row" style="margin-bottom: 20px;">
+                    <div class="form-group"><label>Name</label><input id="new-user-name" placeholder="John Smith"></div>
+                    <div class="form-group"><label>PIN</label><input id="new-user-pin" placeholder="1234" maxlength="6"></div>
+                    <div class="form-group"><label>Role</label>
+                        <select id="new-user-role"><option value="employee">Employee</option><option value="dealer">Dealer</option><option value="carrier">Carrier</option><option value="admin">Admin</option></select>
+                    </div>
+                    <div class="form-group"><label>Max Keys</label><input id="new-user-maxkeys" type="number" value="2" style="width:60px"></div>
+                    <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addUser()">Add User</button></div>
+                </div>
+                <table><thead><tr><th>ID</th><th>Name</th><th>PIN</th><th>Role</th><th>Max Keys</th><th>Status</th><th>Actions</th></tr></thead><tbody id="users-table"></tbody></table>
+            </div>
+
+            <!-- KEY SLOTS -->
+            <div id="page-slots" class="page">
+                <h2>Key Slots</h2>
+                <div class="door-grid" id="slots-grid"></div>
+            </div>
+
+            <!-- AUDIT LOG -->
+            <div id="page-audit" class="page">
+                <h2>Audit Log</h2>
+                <table><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Door</th><th>Details</th></tr></thead><tbody id="audit-table"></tbody></table>
+            </div>
+
+            <!-- SETTINGS -->
+            <div id="page-settings" class="page">
+                <h2>Settings</h2>
+                <div style="background:#fff; padding:24px; border-radius:10px; max-width:400px;">
+                    <div class="form-group" style="margin-bottom:16px">
+                        <label>Device Name</label><input id="set-device-name">
+                    </div>
+                    <div class="form-group" style="margin-bottom:16px">
+                        <label>Mode</label>
+                        <select id="set-mode"><option value="internal">Internal (Employee Checkout)</option><option value="handoff">Handoff (Dealer-Carrier)</option><option value="general">General (PIN Access)</option></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+                    <hr style="margin:24px 0">
+                    <button class="btn btn-outline" onclick="resetCheckouts()">Reset All Checkouts</button>
+                    <button class="btn btn-danger" onclick="factoryReset()" style="margin-left:8px">Factory Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETUP WIZARD (shown if not yet setup) -->
+    <div class="setup-overlay" id="setup-wizard" style="display:none">
+        <div class="setup-box">
+            <h2>Welcome to MyKeyBox</h2>
+            <p style="text-align:center; color:#888; margin-bottom:24px;">First-time setup</p>
+            <div class="form-group"><label>Admin Name</label><input id="setup-name" placeholder="Admin"></div>
+            <div class="form-group"><label>Admin PIN (4-6 digits)</label><input id="setup-pin" placeholder="0000" maxlength="6"></div>
+            <div class="form-group"><label>Mode</label>
+                <select id="setup-mode">
+                    <option value="internal">Internal Use (Employee Key Checkout)</option>
+                    <option value="handoff">Key Handoff (Dealer to Carrier)</option>
+                    <option value="general">General Access (Simple PIN)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Number of Doors</label><input id="setup-doors" type="number" value="4" min="1" max="48"></div>
+            <div class="form-group"><label>Device Name</label><input id="setup-device" value="DEMO-1"></div>
+            <br>
+            <button class="btn btn-primary" onclick="doSetup()">Complete Setup</button>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api/admin'
+
+        // ── Navigation ─────────────────────────────
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+            document.getElementById('page-' + page).classList.add('active')
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
+            event.target.classList.add('active')
+
+            if (page === 'dashboard') loadDashboard()
+            if (page === 'users') loadUsers()
+            if (page === 'slots') loadSlots()
+            if (page === 'audit') loadAudit()
+            if (page === 'settings') loadSettings()
+        }
+
+        // ── Setup ──────────────────────────────────
+
+        async function checkSetup() {
+            const res = await fetch(API + '/setup-status')
+            const data = await res.json()
+            if (!data.setup_complete) {
+                document.getElementById('setup-wizard').style.display = 'flex'
+            } else {
+                loadDashboard()
+            }
+        }
+
+        async function doSetup() {
+            const res = await fetch(API + '/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    admin_name: document.getElementById('setup-name').value,
+                    admin_pin: document.getElementById('setup-pin').value,
+                    mode: document.getElementById('setup-mode').value,
+                    door_count: document.getElementById('setup-doors').value,
+                    device_name: document.getElementById('setup-device').value
+                })
+            })
+            const data = await res.json()
+            if (data.success) {
+                document.getElementById('setup-wizard').style.display = 'none'
+                loadDashboard()
+            } else {
+                alert(data.message)
+            }
+        }
+
+        // ── Dashboard ──────────────────────────────
+
+        async function loadDashboard() {
+            const res = await fetch(API + '/dashboard')
+            const d = await res.json()
+
+            document.getElementById('hdr-device').textContent = d.settings.device_name || 'DEMO'
+            document.getElementById('hdr-hw').textContent = d.connected ? 'HW Connected' : 'HW Disconnected'
+            document.getElementById('hdr-hw').className = 'hw-status ' + (d.connected ? 'hw-connected' : 'hw-disconnected')
+
+            document.getElementById('dash-cards').innerHTML = `
+                <div class="card green"><div class="label">Available</div><div class="value">${d.stats.keys_available}</div></div>
+                <div class="card red"><div class="label">Checked Out</div><div class="value">${d.stats.keys_out}</div></div>
+                <div class="card blue"><div class="label">Users</div><div class="value">${d.stats.total_users}</div></div>
+            `
+
+            document.getElementById('dash-doors').innerHTML = d.slots.map((s, i) => `
+                <div class="door-card">
+                    <div class="door-num">Door ${s.door_number}</div>
+                    <div class="door-label">${s.label || '—'}</div>
+                    <div class="door-vin">${s.vin || ''}</div>
+                    <div class="door-status ds-${s.status}">${s.status.replace('_', ' ')}</div>
+                    ${s.checked_out_by_name ? `<div class="door-user">${s.checked_out_by_name}</div>` : ''}
+                    <div style="font-size:11px;color:#aaa;margin-top:4px">HW: ${d.door_states[i] ? 'Closed' : 'Open'}</div>
+                </div>
+            `).join('')
+
+            document.getElementById('dash-activity').innerHTML = d.recent_activity.slice(0, 10).map(a => `
+                <tr><td style="font-size:12px;color:#888">${new Date(a.timestamp + 'Z').toLocaleString()}</td>
+                <td>${a.user_name || '—'}</td>
+                <td><span class="badge badge-${a.action}">${a.action}</span></td>
+                <td style="font-size:13px;color:#666">${a.details || ''}</td></tr>
+            `).join('')
+        }
+
+        // ── Users ──────────────────────────────────
+
+        async function loadUsers() {
+            const res = await fetch(API + '/users')
+            const d = await res.json()
+            document.getElementById('users-table').innerHTML = d.users.map(u => `
+                <tr style="${u.active ? '' : 'opacity:0.4'}">
+                    <td>${u.id}</td><td>${u.name}</td><td>${u.pin}</td><td>${u.role}</td><td>${u.max_keys}</td>
+                    <td>${u.active ? 'Active' : 'Inactive'}</td>
+                    <td>${u.active ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Deactivate</button>` : ''}</td>
+                </tr>
+            `).join('')
+        }
+
+        async function addUser() {
+            const res = await fetch(API + '/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: document.getElementById('new-user-name').value,
+                    pin: document.getElementById('new-user-pin').value,
+                    role: document.getElementById('new-user-role').value,
+                    max_keys: parseInt(document.getElementById('new-user-maxkeys').value)
+                })
+            })
+            const d = await res.json()
+            if (d.success) {
+                document.getElementById('new-user-name').value = ''
+                document.getElementById('new-user-pin').value = ''
+                loadUsers()
+            } else { alert(d.message) }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Deactivate this user?')) return
+            await fetch(API + '/users/' + id, { method: 'DELETE' })
+            loadUsers()
+        }
+
+        // ── Slots ──────────────────────────────────
+
+        async function loadSlots() {
+            const res = await fetch(API + '/slots')
+            const d = await res.json()
+            document.getElementById('slots-grid').innerHTML = d.slots.map((s, i) => `
+                <div class="door-card" style="width:250px">
+                    <div class="door-num">Door ${s.door_number}</div>
+                    <div class="door-label">${s.label || '—'}</div>
+                    <div class="door-vin">${s.vin || ''}</div>
+                    <div class="door-status ds-${s.status}" style="margin-bottom:12px">${s.status.replace('_', ' ')}</div>
+                    ${s.checked_out_by_name ? `<div class="door-user" style="margin-bottom:8px">${s.checked_out_by_name} — since ${s.checked_out_at ? new Date(s.checked_out_at + 'Z').toLocaleString() : ''}</div>` : ''}
+                    <div class="door-actions">
+                        ${s.status === 'empty' ? `<button class="btn btn-success btn-sm" onclick="assignSlot(${s.id})">Assign Key</button>` : ''}
+                        ${s.status !== 'empty' ? `<button class="btn btn-outline btn-sm" onclick="removeSlot(${s.id})">Remove</button>` : ''}
+                        <button class="btn btn-primary btn-sm" onclick="openDoor(${s.id})">Open</button>
+                    </div>
+                </div>
+            `).join('')
+        }
+
+        async function assignSlot(id) {
+            const label = prompt('Key label (e.g. 2024 Toyota Camry):')
+            if (!label) return
+            const vin = prompt('VIN (optional):') || ''
+            await fetch(API + '/slots/' + id + '/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ label, vin })
+            })
+            loadSlots()
+        }
+
+        async function removeSlot(id) {
+            if (!confirm('Remove this key from slot?')) return
+            await fetch(API + '/slots/' + id + '/remove', { method: 'POST' })
+            loadSlots()
+        }
+
+        async function openDoor(id) {
+            await fetch(API + '/slots/' + id + '/open', { method: 'POST' })
+            loadSlots()
+        }
+
+        // ── Audit ──────────────────────────────────
+
+        async function loadAudit() {
+            const res = await fetch(API + '/audit?limit=100')
+            const d = await res.json()
+            document.getElementById('audit-table').innerHTML = d.logs.map(a => `
+                <tr><td style="font-size:12px;color:#888">${new Date(a.timestamp + 'Z').toLocaleString()}</td>
+                <td>${a.user_name || '—'}</td>
+                <td><span class="badge badge-${a.action}">${a.action}</span></td>
+                <td>${a.door_number || '—'}</td>
+                <td style="font-size:13px;color:#666">${a.details || ''}</td></tr>
+            `).join('')
+        }
+
+        // ── Settings ───────────────────────────────
+
+        async function loadSettings() {
+            const res = await fetch(API + '/settings')
+            const d = await res.json()
+            document.getElementById('set-device-name').value = d.settings.device_name || ''
+            document.getElementById('set-mode').value = d.settings.mode || 'internal'
+        }
+
+        async function saveSettings() {
+            await fetch(API + '/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    device_name: document.getElementById('set-device-name').value,
+                    mode: document.getElementById('set-mode').value
+                })
+            })
+            alert('Settings saved')
+            loadDashboard()
+        }
+
+        async function resetCheckouts() {
+            if (!confirm('Reset all checkouts? All keys will be marked as available.')) return
+            await fetch(API + '/reset-checkouts', { method: 'POST' })
+            loadDashboard()
+        }
+
+        async function factoryReset() {
+            if (!confirm('FACTORY RESET — This will delete ALL data. Are you sure?')) return
+            if (!confirm('Really? This cannot be undone.')) return
+            await fetch(API + '/factory-reset', { method: 'POST' })
+            location.reload()
+        }
+
+        // ── Init ───────────────────────────────────
+        checkSetup()
+        setInterval(() => {
+            const activePage = document.querySelector('.page.active')
+            if (activePage?.id === 'page-dashboard') loadDashboard()
+        }, 5000)
+    </script>
+</body>
+</html>

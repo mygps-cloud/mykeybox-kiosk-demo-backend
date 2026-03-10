@@ -1,0 +1,5 @@
+node_modules/
+db/demo.db
+db/demo.db-wal
+db/demo.db-shm
+.env
