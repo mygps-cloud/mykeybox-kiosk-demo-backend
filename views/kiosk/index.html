@@ -60,7 +60,7 @@
         .keyboard div.delete-key { line-height: 1; background-color: #A9A9A9; display: flex; align-items: center; justify-content: center; }
         .keyboard div.disabled { opacity: 0.2; pointer-events: none; }
         .try-again-btn { color: var(--color-dark); background-color: var(--color-main); border-radius: 24px; font-size: 28px; padding: 18px 48px; margin-top: 100px; font-family: Montserrat, sans-serif; border: none; }
-        .back-btn-circle { position: absolute; top: 20px; left: 20px; z-index: 100; cursor: pointer; }
+        .back-btn { position: absolute; top: 28px; left: 140px; z-index: 100; cursor: pointer; border-radius: 16px; border: 1px solid white; color: white; padding: 12px 18px; display: flex; align-items: center; gap: 8px; font-family: Montserrat, sans-serif; font-size: 18px; background: none; text-decoration: none; }
         .cancel-btn { margin-top: 16px; padding: 14px 40px; background: none; border: 1px solid #444; color: #888; border-radius: 10px; font-size: 16px; font-family: Montserrat, sans-serif; }
 
         /* ── CAR SELECT ── */
@@ -158,7 +158,7 @@
 
     <!-- CODE ENTRY -->
     <div id="code-screen" class="screen">
-        <div class="back-btn-circle" onclick="goHome()"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <a class="back-btn" onclick="goHome()"><svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.49 16.83a1.17 1.17 0 01-1.65 0l-7-7a1.17 1.17 0 010-1.65l7-7a1.17 1.17 0 011.65 1.65L4.48 7.83H20.33a1.17 1.17 0 010 2.34H4.48l5.01 5.01a1.17 1.17 0 010 1.65z" fill="white"/></svg> Back</a>
         <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="unique-code"><span class="code-title">Device: </span><span class="code">DEMO-1</span></div>
         <div class="title-logo">MyKeyBox</div>
@@ -183,7 +183,7 @@
 
     <!-- CAR SELECT -->
     <div id="car-screen" class="screen">
-        <div class="back-btn-circle" onclick="showScreen('code-screen')"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <a class="back-btn" onclick="showScreen('code-screen')"><svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.49 16.83a1.17 1.17 0 01-1.65 0l-7-7a1.17 1.17 0 010-1.65l7-7a1.17 1.17 0 011.65 1.65L4.48 7.83H20.33a1.17 1.17 0 010 2.34H4.48l5.01 5.01a1.17 1.17 0 010 1.65z" fill="white"/></svg> Back</a>
         <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="car-screen-title">Select Vehicle</div>
         <div class="car-screen-code" id="car-screen-code"></div>
@@ -219,7 +219,7 @@
 
     <!-- CONFIRM CAR -->
     <div id="confirm-screen" class="screen">
-        <div class="back-btn-circle" onclick="showScreen('car-screen')"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <a class="back-btn" onclick="showScreen('car-screen')"><svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.49 16.83a1.17 1.17 0 01-1.65 0l-7-7a1.17 1.17 0 010-1.65l7-7a1.17 1.17 0 011.65 1.65L4.48 7.83H20.33a1.17 1.17 0 010 2.34H4.48l5.01 5.01a1.17 1.17 0 010 1.65z" fill="white"/></svg> Back</a>
         <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="confirm-title">Confirm Vehicle</div>
         <div class="confirm-card">
@@ -237,7 +237,7 @@
 
     <!-- DOOR SELECT -->
     <div id="door-select-screen" class="screen">
-        <div class="back-btn-circle" onclick="showScreen('confirm-screen')"><svg width="55" height="55" viewBox="0 0 55 55" fill="none"><circle cx="27.5" cy="27.5" r="25" stroke="#FEDC01" stroke-width="2"/><path d="M32 15L20 27.5L32 40" stroke="#FEDC01" stroke-width="3" stroke-linecap="round"/></svg></div>
+        <a class="back-btn" onclick="showScreen('confirm-screen')"><svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.49 16.83a1.17 1.17 0 01-1.65 0l-7-7a1.17 1.17 0 010-1.65l7-7a1.17 1.17 0 011.65 1.65L4.48 7.83H20.33a1.17 1.17 0 010 2.34H4.48l5.01 5.01a1.17 1.17 0 010 1.65z" fill="white"/></svg> Back</a>
         <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
         <div class="door-select-title">Select Door</div>
         <div class="door-select-car" id="door-select-car"></div>
