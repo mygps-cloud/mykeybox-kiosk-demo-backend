@@ -132,13 +132,19 @@
         .door-select-car-info { font-size: 12px; color: #888; font-family: MontserratRegular, sans-serif; margin-top: 4px; }
 
         /* ── DOOR OPEN ── */
-        .door-visual { width: 120px; height: 160px; border: 3px solid var(--color-main); border-radius: 10px; margin-bottom: 20px; animation: doorSwing 1.5s ease-in-out infinite; }
-        @keyframes doorSwing { 0%,100% { transform: perspective(600px) rotateY(0deg); } 50% { transform: perspective(600px) rotateY(-30deg); } }
-        .door-message { font-size: 36px; color: var(--color-main); font-weight: 700; margin-bottom: 8px; font-family: Montserrat, sans-serif; }
-        .door-instruction { font-size: 22px; color: #aaa; margin-bottom: 8px; font-family: MontserratRegular, sans-serif; }
-        .door-car-info { font-size: 16px; color: white; font-family: Montserrat, sans-serif; margin-bottom: 4px; }
-        .door-car-vin { font-size: 13px; color: #777; font-family: MontserratRegular, sans-serif; letter-spacing: 1px; margin-bottom: 12px; }
-        .door-timer { font-size: 14px; color: #555; font-family: MontserratRegular, sans-serif; }
+        .door-open-container { display: flex; flex-direction: column; align-items: center; gap: 0; margin-top: 10px; }
+        .door-number-badge { width: 100px; height: 100px; border-radius: 50%; background: var(--color-main); display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 700; color: var(--color-dark); font-family: Montserrat, sans-serif; animation: badgePulse 1.5s ease-in-out infinite; margin-bottom: 14px; }
+        @keyframes badgePulse { 0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(254,220,1,0.6); } 50% { transform: scale(1.08); box-shadow: 0 0 30px 12px rgba(254,220,1,0.3); } }
+        .door-message { font-size: 38px; color: var(--color-main); font-weight: 700; margin-bottom: 6px; font-family: Montserrat, sans-serif; text-align: center; }
+        .door-instruction { font-size: 24px; color: #ccc; margin-bottom: 16px; font-family: MontserratRegular, sans-serif; text-align: center; }
+        .door-alert-box { background: rgba(254,220,1,0.08); border: 2px solid rgba(254,220,1,0.3); border-radius: 16px; padding: 18px 28px; display: flex; align-items: center; gap: 20px; max-width: 600px; width: 90%; margin-bottom: 14px; }
+        .door-alert-img { width: 130px; height: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .door-alert-img img { width: 130px; height: 90px; object-fit: contain; }
+        .door-alert-info { flex: 1; }
+        .door-alert-action { font-size: 18px; color: var(--color-main); font-family: Montserrat, sans-serif; margin-bottom: 6px; }
+        .door-alert-car { font-size: 22px; color: white; font-family: Montserrat, sans-serif; font-weight: 600; }
+        .door-alert-vin { font-size: 12px; color: #777; font-family: MontserratRegular, sans-serif; letter-spacing: 1px; margin-top: 4px; }
+        .door-timer { font-size: 15px; color: #666; font-family: MontserratRegular, sans-serif; margin-top: 6px; }
 
         /* ── DONE ── */
         .done-check { font-size: 80px; color: #52FE01; margin-bottom: 16px; }
@@ -255,12 +261,20 @@
     <!-- DOOR OPEN -->
     <div id="door-screen" class="screen">
         <img class="logo-img" src="assets/image/logo.png" alt="MyKeyBox">
-        <div class="door-visual"></div>
-        <div class="door-message" id="door-message">DOOR IS OPEN</div>
-        <div class="door-instruction" id="door-instruction">Take your key</div>
-        <div class="door-car-info" id="door-car-info"></div>
-        <div class="door-car-vin" id="door-car-vin"></div>
-        <div class="door-timer" id="door-timer"></div>
+        <div class="door-open-container">
+            <div class="door-number-badge" id="door-number-badge">1</div>
+            <div class="door-message" id="door-message">DOOR IS OPEN</div>
+            <div class="door-instruction" id="door-instruction">Take your key</div>
+            <div class="door-alert-box" id="door-alert-box">
+                <div class="door-alert-img" id="door-alert-img"></div>
+                <div class="door-alert-info">
+                    <div class="door-alert-action" id="door-alert-action"></div>
+                    <div class="door-alert-car" id="door-alert-car"></div>
+                    <div class="door-alert-vin" id="door-alert-vin"></div>
+                </div>
+            </div>
+            <div class="door-timer" id="door-timer"></div>
+        </div>
     </div>
 
     <!-- DONE -->
@@ -481,15 +495,33 @@
 
         // ── Door Open ──
         function showDoorScreen(msg, inst, doorNum, action, carLabel, carVin) {
+            document.getElementById('door-number-badge').textContent = doorNum
             document.getElementById('door-message').textContent = msg
             document.getElementById('door-instruction').textContent = inst
-            document.getElementById('door-car-info').textContent = carLabel || ''
-            document.getElementById('door-car-vin').textContent = carVin || ''
+
+            // Action-specific alert text
+            if (action === 'place') {
+                document.getElementById('door-alert-action').textContent = 'Please place the key for:'
+            } else {
+                document.getElementById('door-alert-action').textContent = 'Please retrieve the key for:'
+            }
+
+            // Car image
+            const imgEl = document.getElementById('door-alert-img')
+            if (selectedCar) {
+                imgEl.innerHTML = carImg(selectedCar.id, 130, 90)
+            } else {
+                imgEl.innerHTML = '<svg width="60" height="60" viewBox="0 0 24 24" fill="none"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="#FEDC01"/></svg>'
+            }
+
+            document.getElementById('door-alert-car').textContent = carLabel || 'Vehicle Key'
+            document.getElementById('door-alert-vin').textContent = carVin ? `VIN: ${carVin}` : ''
+
             showScreen('door-screen')
             let sec = 30; const t = document.getElementById('door-timer')
             if (doorInterval) clearInterval(doorInterval)
             doorInterval = setInterval(async()=>{
-                sec--; t.textContent=`Auto-close in ${sec}s`
+                sec--; t.textContent=`Door closes in ${sec}s`
                 try { const r=await fetch(API+'/door-states');const d=await r.json();if(d.states[doorNum-1]){clearInterval(doorInterval);showDoneScreen(action);return} } catch{}
                 if(sec<=0){clearInterval(doorInterval);showDoneScreen(action)}
             },1000)
