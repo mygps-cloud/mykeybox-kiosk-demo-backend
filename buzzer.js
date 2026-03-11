@@ -66,4 +66,7 @@ function stopDoorAlarm(doorIndex) {
     play('doorClosed')
 }
 
+// Set USB audio volume to max on startup
+exec(`amixer -c 1 sset Speaker 100% 2>/dev/null`, () => {})
+
 module.exports = { beep, play, startDoorAlarm, stopDoorAlarm, PATTERNS }
